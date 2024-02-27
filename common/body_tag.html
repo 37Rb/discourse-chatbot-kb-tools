@@ -5,10 +5,10 @@
         #chatbotCategoryId;
 
         constructor(chatbotCategoryName = 'Chatbot') {
-            this.findChatbotCategoryId(chatbotCategoryName);
+            this.#findChatbotCategoryId(chatbotCategoryName);
         }
 
-        findChatbotCategoryId(categoryName) {
+        #findChatbotCategoryId(categoryName) {
             fetch("/categories.json").then(response => response.json()).then(result => {
                 console.log(result);
                 let category = result.category_list.categories.find(c => c.name === categoryName);
@@ -52,7 +52,7 @@
                 const result = await response.json();
                 console.log("Imported topic " + topicId + " as KB topic " + result.topic_id);
             } else {
-                console.log("Failed to import topic " + topicId + ": " + response.status + " " + response.statusText);
+                console.error("Failed to import topic " + topicId + ": " + response.status + " " + response.statusText);
             }
         }
 
