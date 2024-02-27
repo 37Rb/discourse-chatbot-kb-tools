@@ -25,7 +25,10 @@
             let response = await fetch("/t/" + topicId + ".json?include_raw=true");
             let topic = await response.json();
 
-            let header = "Topic title is: " + topic.title + "\nTopic tags are: " + topic.tags;
+            let header = "Topic title is: " + topic.title + "\n";
+            if (topic.tags.length > 0) {
+                header += "Topic tags are: " + topic.tags.join(", ") + "\n";
+            }
 
             let posts = topic.post_stream.posts.map((post) => {
                 return "Link to post below is: " + this.#makeLinkToPost(post) + "\n" + post.raw;
@@ -33,7 +36,7 @@
 
             let new_post = {
                 title: "KB: " + topic.title,
-                raw: header + "\n\n" + posts.join("\n\n"),
+                raw: header + "\n" + posts.join("\n\n"),
                 category: this.#chatbotCategoryId,
             };
 
