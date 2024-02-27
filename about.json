@@ -1,0 +1,17 @@
+{
+  "name": "Chatbot Knowledge Base Tools",
+  "component": true,
+  "license_url": "https://github.com/37Rb/discourse-chatbot-kb-tools/blob/main/LICENSE",
+  "about_url": "https://github.com/37Rb/discourse-chatbot-kb-tools",
+  "authors": "Ryan Boder",
+  "theme_version": "0.0.0",
+  "minimum_discourse_version": null,
+  "maximum_discourse_version": null,
+  "assets": {
+  },
+  "color_schemes": {
+  },
+  "modifiers": {
+  },
+  "learn_more": null
+}

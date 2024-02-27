@@ -1,0 +1,64 @@
+<script>
+    class ChatbotKnowledgeBase {
+
+        #baseUrl = window.location.origin;
+        #chatbotCategoryId;
+
+        constructor(chatbotCategoryName = 'Chatbot') {
+            this.findChatbotCategoryId(chatbotCategoryName);
+        }
+
+        findChatbotCategoryId(categoryName) {
+            fetch("/categories.json").then(response => response.json()).then(result => {
+                console.log(result);
+                let category = result.category_list.categories.find(c => c.name === categoryName);
+                if (category) {
+                    this.#chatbotCategoryId = category.id;
+                    console.log("Using chatbot category " + categoryName + " with ID " + this.#chatbotCategoryId);
+                } else {
+                    console.error("Failed to find a category named " + categoryName);
+                }
+            }).catch(error => console.error("Failed to look up categories: " + error));
+        }
+
+        async importTopic(topicId) {
+            let response = await fetch("/t/" + topicId + ".json?include_raw=true");
+            let topic = await response.json();
+
+            let header = "Topic title is: " + topic.title + "\nTopic tags are: " + topic.tags;
+
+            let posts = topic.post_stream.posts.map((post) => {
+                return "Link to post below is: " + this.#makeLinkToPost(post) + "\n" + post.raw;
+            }, this);
+
+            let new_post = {
+                title: "CB: " + topic.title,
+                raw: header + "\n\n" + posts.join("\n\n"),
+                category: this.#chatbotCategoryId,
+            };
+
+            response = await fetch("/posts.json", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Csrf-Token": document.head.querySelector("meta[name=csrf-token]")?.content
+                },
+                body: JSON.stringify(new_post),
+            });
+            if (response.ok) {
+                const result = await response.json();
+                console.log("Imported topic " + topicId + " as KB topic " + result.topic_id);
+            } else {
+                console.log("Failed to import topic " + topicId + ": " + response.status + " " + response.statusText);
+            }
+        }
+
+        #makeLinkToPost(post) {
+            let linkUrl = this.#baseUrl + "/t/" + post.topic_slug + "/" + post.topic_id;
+            if (post.post_number > 1) {
+                linkUrl += "/" + post.post_number;
+            }
+            return linkUrl;
+        }
+    }
+</script>
