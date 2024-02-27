@@ -20,13 +20,13 @@ A JavaScript object called ChatbotKnowledgeBase provides access to the tools. Us
 Create a new ChatbotKnowledgeBase and assign it to a variable.
 
 ```javascript
-> x = new ChatbotKnowledgeBase()
+x = new ChatbotKnowledgeBase()
 ```
 
 By default, it will look for a category named Chatbot to use as the knowledge base category. If your knowledge base categiory has a different name, you can provide it when you create the object.
 
 ```javascript
-> x = new ChatbotKnowledgeBase("My Knowledge Base Category")
+x = new ChatbotKnowledgeBase("My Knowledge Base Category")
 ```
 
 ### Import a topic to the knowledge base category
@@ -34,7 +34,7 @@ By default, it will look for a category named Chatbot to use as the knowledge ba
 Call importTopic and provide the ID of the topic you want to import.
 
 ```javascript
-> x.importTopic(26970)
+x.importTopic(26970)
 ```
 
 ## Installation
