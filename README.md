@@ -51,7 +51,7 @@ Import topic 26970 as a new KB topic.
 x.importTopic(26970)
 ```
 
-Import topic 26989 by updating KB topic 27102.
+Import topic 26989 by updating KB topic 27102. Do this when a topic that's already been imported has changed.
 
 ```javascript
 x.importTopic(26989, { update: 27102 })
