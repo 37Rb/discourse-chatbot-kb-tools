@@ -1,6 +1,5 @@
 <script>
     class ChatbotKnowledgeBase {
-        #baseUrl = window.location.origin;
         #chatbotCategoryId;
 
         constructor(chatbotCategoryName = 'Chatbot') {
@@ -68,10 +67,7 @@
         async #createKbTopic(sourceTopic, kbPostContent) {
             let response = await fetch("/posts.json", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Csrf-Token": document.head.querySelector("meta[name=csrf-token]")?.content
-                },
+                headers: this.#buildApiRequestHeaders(),
                 body: JSON.stringify({
                     title: this.#buildKbTopicTitle(sourceTopic),
                     raw: kbPostContent,
@@ -98,10 +94,7 @@
 
             let response = await fetch("/t/-/" + kbTopicId + ".json", {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Csrf-Token": document.head.querySelector("meta[name=csrf-token]")?.content
-                },
+                headers: this.#buildApiRequestHeaders(),
                 body: JSON.stringify({
                     title: this.#buildKbTopicTitle(sourceTopic),
                 }),
@@ -112,10 +105,7 @@
 
             response = await fetch("/posts/" + kbTopic.post_stream.posts[0].id + ".json", {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Csrf-Token": document.head.querySelector("meta[name=csrf-token]")?.content
-                },
+                headers: this.#buildApiRequestHeaders(),
                 body: JSON.stringify({
                     raw: kbPostContent,
                     edit_reason: "Updated with KB tools.",
@@ -129,11 +119,18 @@
         }
 
         #buildLinkToPost(post) {
-            let linkUrl = this.#baseUrl + "/t/" + post.topic_slug + "/" + post.topic_id;
+            let linkUrl = window.location.origin + "/t/" + post.topic_slug + "/" + post.topic_id;
             if (post.post_number > 1) {
                 linkUrl += "/" + post.post_number;
             }
             return linkUrl;
+        }
+
+        #buildApiRequestHeaders() {
+            return {
+                "Content-Type": "application/json",
+                "X-Csrf-Token": document.head.querySelector("meta[name=csrf-token]")?.content
+            };
         }
 
         #isObject(x) {
