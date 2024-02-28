@@ -11,13 +11,13 @@ Chatbot Knowledge Base Tools help you import knowledge from your forum into the 
 
 ## Usage
 
-A JavaScript object called ChatbotKnowledgeBase provides access to the tools. Use the [JavaScript console](https://www.coursera.support/s/article/learner-000001653-How-to-open-the-Javascript-console?language=en_US) in your browser to create an instance of ChatbotKnowledgeBase and call it's functons.
+A JavaScript object called ChatbotKnowledgeBase provides access to the tools. Use the [JavaScript console](https://www.coursera.support/s/article/learner-000001653-How-to-open-the-Javascript-console?language=en_US) in your browser to create an instance of ChatbotKnowledgeBase and call its functions.
 
 ![Example Javascript Console](https://raw.githubusercontent.com/37Rb/discourse-chatbot-kb-tools/main/images/example-js-console.png)
 
 ### Create the ChatbotKnowledgeBase object
 
-Create a new ChatbotKnowledgeBase and assign it to a variable.
+Create a new ChatbotKnowledgeBase object and assign it to a variable.
 
 ```javascript
 x = new ChatbotKnowledgeBase()
