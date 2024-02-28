@@ -31,10 +31,22 @@ x = new ChatbotKnowledgeBase("My Knowledge Base Category")
 
 ### Import a topic to the knowledge base category
 
-Call importTopic and provide the ID of the topic you want to import.
+Use importTopic and provide the ID of the topic you want to import.
 
 ```javascript
 x.importTopic(26970)
+```
+
+Only include specific posts when importing the topic.
+
+```javascript
+x.importTopic(26989, { include: [1,2,4] })
+```
+
+Exclude specific posts when importing the topic.
+
+```javascript
+x.importTopic(26989, { exclude: [3,5,6] })
 ```
 
 ## Installation

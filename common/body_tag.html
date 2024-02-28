@@ -21,7 +21,7 @@
             }).catch(error => console.error("Failed to look up categories: " + error));
         }
 
-        async importTopic(topicId) {
+        async importTopic(topicId, options = {}) {
             let response = await fetch("/t/" + topicId + ".json?include_raw=true");
             let topic = await response.json();
 
@@ -30,8 +30,16 @@
                 header += "Topic tags are: " + topic.tags.join(", ") + "\n";
             }
 
-            let posts = topic.post_stream.posts.map((post) => {
-                return "Link to post below is: " + this.#makeLinkToPost(post) + "\n" + post.raw;
+            let posts = topic.post_stream.posts;
+
+            if ('include' in options && Array.isArray(options['include'])) {
+                posts = posts.filter(post => options['include'].includes(post.post_number));
+            } else if ('exclude' in options && Array.isArray(options['exclude'])) {
+                posts = posts.filter(post => !options['exclude'].includes(post.post_number));
+            }
+
+            posts = posts.map((post) => {
+                return "Link to post " + post.post_number + " below is: " + this.#makeLinkToPost(post) + "\n" + post.raw;
             }, this);
 
             let new_post = {
