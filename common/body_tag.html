@@ -41,29 +41,6 @@
             return response.json();
         }
 
-        #buildKbTopicTitle(sourceTopic) {
-            return "KB: " + sourceTopic.title;
-        }
-
-        #buildKbPostContent(topic, options) {
-            let header = "**Topic title is:** " + topic.title + "\n";
-            if (topic.tags.length > 0) {
-                header += "**Topic tags are:** " + topic.tags.join(", ") + "\n";
-            }
-
-            let posts = topic.post_stream.posts;
-            if ('include' in options && Array.isArray(options['include'])) {
-                posts = posts.filter(post => options['include'].includes(post.post_number));
-            } else if ('exclude' in options && Array.isArray(options['exclude'])) {
-                posts = posts.filter(post => !options['exclude'].includes(post.post_number));
-            }
-            posts = posts.map((post) => {
-                return "**Link to post " + post.post_number + " below is:** " + this.#buildLinkToPost(post) + "\n" + post.raw;
-            }, this);
-
-            return header + "\n" + posts.join("\n\n");
-        }
-
         async #createKbTopic(sourceTopic, kbPostContent) {
             let response = await fetch("/posts.json", {
                 method: "POST",
@@ -116,6 +93,29 @@
             } else {
                 return Promise.reject("Failed to update KB topic " + kbTopicId + " post content: " + response.status + " " + response.statusText);
             }
+        }
+
+        #buildKbTopicTitle(sourceTopic) {
+            return "KB: " + sourceTopic.title;
+        }
+
+        #buildKbPostContent(topic, options) {
+            let header = "**Topic title is:** " + topic.title + "\n";
+            if (topic.tags.length > 0) {
+                header += "**Topic tags are:** " + topic.tags.join(", ") + "\n";
+            }
+
+            let posts = topic.post_stream.posts;
+            if ('include' in options && Array.isArray(options['include'])) {
+                posts = posts.filter(post => options['include'].includes(post.post_number));
+            } else if ('exclude' in options && Array.isArray(options['exclude'])) {
+                posts = posts.filter(post => !options['exclude'].includes(post.post_number));
+            }
+            posts = posts.map((post) => {
+                return "**Link to post " + post.post_number + " below is:** " + this.#buildLinkToPost(post) + "\n" + post.raw;
+            }, this);
+
+            return header + "\n" + posts.join("\n\n");
         }
 
         #buildLinkToPost(post) {
