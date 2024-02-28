@@ -36,6 +36,13 @@
             }
         }
 
+        async showTopic(topicId) {
+            if (!Number.isInteger(topicId)) {
+                return Promise.reject("topicId must be an integer.");
+            }
+            console.log(await this.#getTopic(topicId));
+        }
+
         async #getTopic(topicId) {
             let response = await fetch("/t/" + topicId + ".json?include_raw=true");
             return response.json();
