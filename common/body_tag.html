@@ -183,7 +183,7 @@
             let html = await response.text();
             let markdown = turndown.turndown(html);
             let firstLineEnd = markdown.indexOf("\n");
-            return markdown.slice(0, firstLineEnd) + "\n" + "**Link to page below is:** " + url + "\n" + markdown.slice(firstLineEnd + 1);
+            return markdown.slice(0, firstLineEnd).trim() + "\n" + "**Link to page below is:** " + url + "\n" + markdown.slice(firstLineEnd + 1);
         }
 
         #buildLinkToPost(post) {
