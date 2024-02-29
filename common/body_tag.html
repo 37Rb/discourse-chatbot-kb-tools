@@ -43,7 +43,10 @@
             }
         }
 
-        importWebPageRemoveTags = ['meta', 'style', 'link', 'script', 'noscript', 'applet', 'area', 'object', 'nav', 'base', 'embed', 'object', 'param', 'header', 'hgroup', 'footer'];
+        defaultImportWebPageRemoveTags = [
+            'meta', 'style', 'link', 'script', 'noscript', 'applet', 'area', 'object', 'nav', 'base', 'embed',
+            'object', 'param', 'header', 'hgroup', 'footer'
+        ];
 
         async importWebPage(url, options = {}) {
             if (!(typeof url === 'string' && url.startsWith('http'))) {
@@ -56,9 +59,9 @@
             await this.#loadTurndown();
             let turndown = new TurndownService();
             if (!('removeTags' in options)) {
-                options['removeTags'] = this.importWebPageRemoveTags;
+                options['removeTags'] = this.defaultImportWebPageRemoveTags;
             }
-            turndown.remove(this.importWebPageRemoveTags);
+            turndown.remove(options['removeTags']);
             if ('removeIds' in options) {
                 turndown.remove(node => node.id && Array.isArray(options['removeIds']) && options['removeIds'].includes(node.id));
             }
