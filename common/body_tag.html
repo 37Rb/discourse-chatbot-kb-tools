@@ -1,8 +1,10 @@
 <script>
     class ChatbotKnowledgeBase {
+        #chatbotCategoryName;
         #chatbotCategoryId;
 
         constructor(chatbotCategoryName = 'Chatbot') {
+            this.#chatbotCategoryName = chatbotCategoryName;
             this.#findChatbotCategoryId(chatbotCategoryName);
         }
 
@@ -20,7 +22,7 @@
 
             try {
                 if ('update' in options) {
-                    let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update']);
+                    let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update'], topicId, options['force']);
                     console.log("Imported topic " + topicId + " by updating KB topic " + kbTopicId);
                 } else {
                     let kbTopicId = await this.#createKbTopic(kbTopicTitle, kbPostContent);
@@ -44,14 +46,15 @@
                 return Promise.reject("options must be an object.");
             }
 
+            let pageId = url.replace(/(^\w+:|^)\/\//, '');
             let kbPostContent = await this.#buildKbPostContentFromWebPage(url, options);
-            let kbTopicTitle = "KB page " + url.replace(/(^\w+:|^)\/\//, '');
+            let kbTopicTitle = "KB page " + pageId;
 
             try {
                 if ('dryRun' in options && options['dryRun']) {
                     console.log("Title: " + kbTopicTitle + "\n\nContent: " + kbPostContent);
                 } else if ('update' in options) {
-                    let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update']);
+                    let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update'], pageId, options['force']);
                     console.log("Imported " + url + " by updating KB topic " + kbTopicId);
                 } else {
                     let kbTopicId = await this.#createKbTopic(kbTopicTitle, kbPostContent);
@@ -104,12 +107,18 @@
             }
         }
 
-        async #updateKbTopic(kbTopicTitle, kbPostContent, kbTopicId) {
+        async #updateKbTopic(kbTopicTitle, kbPostContent, kbTopicId, sourceId, force) {
             if (!Number.isInteger(kbTopicId)) {
                 return Promise.reject("KB topic ID must be an integer.");
             }
 
             let kbTopic = await this.#getTopic(kbTopicId);
+            if (kbTopic.category_id !== this.#chatbotCategoryId) {
+                return Promise.reject("KB topic " + kbTopicId + " is not in the " + this.#chatbotCategoryName + " category. If you're sure then use force option to update.");
+            }
+            if (!kbTopic.title.includes(sourceId) && !force) {
+                return Promise.reject("KB topic " + kbTopicId + " title does not include " + sourceId + ". If you're sure then use force option to update.");
+            }
             if (kbTopic.posts_count !== 1) {
                 return Promise.reject("KB topic " + kbTopicId + " has " + kbTopic.posts_count + " posts. Expected 1.");
             }
