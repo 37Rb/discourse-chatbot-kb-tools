@@ -15,7 +15,7 @@
             }
 
             let sourceTopic = await this.#getTopic(topicId);
-            let kbTopicTitle = this.#buildKbTopicTitle(sourceTopic.title);
+            let kbTopicTitle = "KB topic " + topicId + ": " + sourceTopic.title;
             let kbPostContent = this.#buildKbPostContentFromTopic(sourceTopic, options);
 
             try {
@@ -45,7 +45,7 @@
             }
 
             let kbPostContent = await this.#buildKbPostContentFromWebPage(url, options);
-            let kbTopicTitle = this.#buildKbTopicTitle(kbPostContent.slice(0, kbPostContent.indexOf("\n")).trim());
+            let kbTopicTitle = "KB page " + url.replace(/(^\w+:|^)\/\//, '');
 
             try {
                 if ('dryRun' in options && options['dryRun']) {
@@ -138,10 +138,6 @@
             } else {
                 return Promise.reject("Error updating KB topic " + kbTopicId + " post content: " + response.status + " " + response.statusText);
             }
-        }
-
-        #buildKbTopicTitle(sourceTitle) {
-            return "KB: " + sourceTitle;
         }
 
         #buildKbPostContentFromTopic(topic, options) {
