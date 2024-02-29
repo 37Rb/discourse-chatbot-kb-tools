@@ -143,5 +143,35 @@
         #isObject(x) {
             return typeof x === 'object' && x !== null && !Array.isArray(x);
         }
+
+        #loadScript(scriptUrl, callback) {
+            const script = document.createElement('script');
+            script.src = scriptUrl;
+            script.onload = callback;
+            document.body.appendChild(script);
+        }
+
+        async #ensureTurndownLoaded() {
+            return new Promise(resolve => {
+                if (typeof TurndownService === 'undefined') {
+                    this.#loadScript("https://unpkg.com/turndown/dist/turndown.js", function () {
+                        resolve("Successfully loaded Turndown");
+                    });
+                } else {
+                    resolve("Turndown already loaded");
+                }
+            });
+        }
+
+        async importWebPage(url) {
+            await this.#ensureTurndownLoaded();
+            let response = await fetch(url);
+            console.log(response);
+            if (!response.ok) {
+                return Promise.reject("Failed to fetch " + url + ": " + response.status + " " + response.statusText);
+            }
+            let html = await response.text();
+            console.log(html);
+        }
     }
 </script>
