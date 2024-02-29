@@ -44,12 +44,7 @@
                 return Promise.reject("options must be an object.");
             }
 
-            let response = await fetch(url);
-            if (!response.ok) {
-                return Promise.reject("Failed to fetch " + url + ": " + response.status + " " + response.statusText);
-            }
-            let html = await response.text();
-            let kbPostContent = await this.#buildKbPostContentFromHtml(html, options);
+            let kbPostContent = await this.#buildKbPostContentFromWebPage(url, options);
             let kbTopicTitle = this.#buildKbTopicTitle(kbPostContent.slice(0, kbPostContent.indexOf("\n")).trim());
 
             try {
@@ -168,9 +163,11 @@
             return header + "\n" + posts.join("\n\n");
         }
 
-        async #buildKbPostContentFromHtml(html, options) {
+        async #buildKbPostContentFromWebPage(url, options) {
             await this.#loadTurndown();
-            let turndown = new TurndownService();
+            let turndown = new TurndownService({
+                headingStyle: 'atx'
+            });
             if (!('removeTags' in options)) {
                 options['removeTags'] = this.defaultImportWebPageRemoveTags;
             }
@@ -178,7 +175,15 @@
             if ('removeIds' in options) {
                 turndown.remove(node => node.id && Array.isArray(options['removeIds']) && options['removeIds'].includes(node.id));
             }
-            return turndown.turndown(html);
+
+            let response = await fetch(url);
+            if (!response.ok) {
+                return Promise.reject("Failed to fetch " + url + ": " + response.status + " " + response.statusText);
+            }
+            let html = await response.text();
+            let markdown = turndown.turndown(html);
+            let firstLineEnd = markdown.indexOf("\n");
+            return markdown.slice(0, firstLineEnd) + "\n" + "**Link to page below is:** " + url + "\n" + markdown.slice(firstLineEnd + 1);
         }
 
         #buildLinkToPost(post) {
