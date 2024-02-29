@@ -27,12 +27,61 @@
             }
 
             let sourceTopic = await this.#getTopic(topicId);
+            let kbTopicTitle = this.#buildKbTopicTitle(sourceTopic.title);
             let kbPostContent = this.#buildKbPostContent(sourceTopic, options);
 
-            if ('update' in options) {
-                console.log(await this.#updateKbTopic(sourceTopic, kbPostContent, options['update']));
-            } else {
-                console.log(await this.#createKbTopic(sourceTopic, kbPostContent));
+            try {
+                if ('update' in options) {
+                    let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update']);
+                    console.log("Imported topic " + topicId + " by updating KB topic " + kbTopicId);
+                } else {
+                    let kbTopicId = await this.#createKbTopic(kbTopicTitle, kbPostContent);
+                    console.log("Imported topic " + topicId + " as new KB topic " + kbTopicId);
+                }
+            } catch (error) {
+                console.error("Failed to import topic " + topicId + ": " + error);
+            }
+        }
+
+        importWebPageRemoveTags = ['meta', 'style', 'link', 'script', 'noscript', 'applet', 'area', 'object', 'nav', 'base', 'embed', 'object', 'param', 'header', 'hgroup', 'footer'];
+
+        async importWebPage(url, options = {}) {
+            if (!(typeof url === 'string' && url.startsWith('http'))) {
+                return Promise.reject("url must be a string that starts with http.");
+            }
+            if (!this.#isObject(options)) {
+                return Promise.reject("options must be an object.");
+            }
+
+            await this.#loadTurndown();
+            let turndown = new TurndownService();
+            if (!('removeTags' in options)) {
+                options['removeTags'] = this.importWebPageRemoveTags;
+            }
+            turndown.remove(this.importWebPageRemoveTags);
+            if ('removeIds' in options) {
+                turndown.remove(node => node.id && Array.isArray(options['removeIds']) && options['removeIds'].includes(node.id));
+            }
+
+            let response = await fetch(url);
+            if (!response.ok) {
+                return Promise.reject("Failed to fetch " + url + ": " + response.status + " " + response.statusText);
+            }
+            let html = await response.text();
+            let markdown = turndown.turndown(html);
+            let kbTopicTitle = this.#buildKbTopicTitle(markdown.slice(0, markdown.indexOf("\n")).trim());
+            let kbPostContent = markdown;
+
+            try {
+                if ('update' in options) {
+                    let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update']);
+                    console.log("Imported " + url + " by updating KB topic " + kbTopicId);
+                } else {
+                    let kbTopicId = await this.#createKbTopic(kbTopicTitle, kbPostContent);
+                    console.log("Imported " + url + " as new KB topic " + kbTopicId);
+                }
+            } catch (error) {
+                console.error("Failed to import " + url + ": " + error);
             }
         }
 
@@ -48,25 +97,25 @@
             return response.json();
         }
 
-        async #createKbTopic(sourceTopic, kbPostContent) {
+        async #createKbTopic(kbTopicTitle, kbPostContent) {
             let response = await fetch("/posts.json", {
                 method: "POST",
                 headers: this.#buildApiRequestHeaders(),
                 body: JSON.stringify({
-                    title: this.#buildKbTopicTitle(sourceTopic),
+                    title: kbTopicTitle,
                     raw: kbPostContent,
                     category: this.#chatbotCategoryId,
                 }),
             });
             if (response.ok) {
                 const result = await response.json();
-                return Promise.resolve("Imported topic " + sourceTopic.id + " as new KB topic " + result.topic_id);
+                return Promise.resolve(result.topic_id);
             } else {
-                return Promise.reject("Failed to import topic " + sourceTopic.id + ": " + response.status + " " + response.statusText);
+                return Promise.reject("Error creating KB topic: " + response.status + " " + response.statusText);
             }
         }
 
-        async #updateKbTopic(sourceTopic, kbPostContent, kbTopicId) {
+        async #updateKbTopic(kbTopicTitle, kbPostContent, kbTopicId) {
             if (!Number.isInteger(kbTopicId)) {
                 return Promise.reject("KB topic ID must be an integer.");
             }
@@ -80,11 +129,11 @@
                 method: "PUT",
                 headers: this.#buildApiRequestHeaders(),
                 body: JSON.stringify({
-                    title: this.#buildKbTopicTitle(sourceTopic),
+                    title: kbTopicTitle,
                 }),
             });
             if (!response.ok) {
-                return Promise.reject("Failed to update KB topic " + kbTopicId + " title: " + response.status + " " + response.statusText);
+                return Promise.reject("Error updating KB topic " + kbTopicId + " title: " + response.status + " " + response.statusText);
             }
 
             response = await fetch("/posts/" + kbTopic.post_stream.posts[0].id + ".json", {
@@ -96,14 +145,14 @@
                 }),
             });
             if (response.ok) {
-                return Promise.resolve("Imported topic " + sourceTopic.id + " by updating KB topic " + kbTopicId);
+                return Promise.resolve(kbTopicId);
             } else {
-                return Promise.reject("Failed to update KB topic " + kbTopicId + " post content: " + response.status + " " + response.statusText);
+                return Promise.reject("Error updating KB topic " + kbTopicId + " post content: " + response.status + " " + response.statusText);
             }
         }
 
-        #buildKbTopicTitle(sourceTopic) {
-            return "KB: " + sourceTopic.title;
+        #buildKbTopicTitle(sourceTitle) {
+            return "KB: " + sourceTitle;
         }
 
         #buildKbPostContent(topic, options) {
@@ -151,7 +200,7 @@
             document.body.appendChild(script);
         }
 
-        async #ensureTurndownLoaded() {
+        async #loadTurndown() {
             return new Promise(resolve => {
                 if (typeof TurndownService === 'undefined') {
                     this.#loadScript("https://unpkg.com/turndown/dist/turndown.js", function () {
@@ -161,17 +210,6 @@
                     resolve("Turndown already loaded");
                 }
             });
-        }
-
-        async importWebPage(url) {
-            await this.#ensureTurndownLoaded();
-            let response = await fetch(url);
-            console.log(response);
-            if (!response.ok) {
-                return Promise.reject("Failed to fetch " + url + ": " + response.status + " " + response.statusText);
-            }
-            let html = await response.text();
-            console.log(html);
         }
     }
 </script>
