@@ -6,18 +6,6 @@
             this.#findChatbotCategoryId(chatbotCategoryName);
         }
 
-        #findChatbotCategoryId(categoryName) {
-            fetch("/categories.json").then(response => response.json()).then(result => {
-                let category = result.category_list.categories.find(c => c.name === categoryName);
-                if (category) {
-                    this.#chatbotCategoryId = category.id;
-                    console.log("Using chatbot category " + categoryName + " with ID " + this.#chatbotCategoryId);
-                } else {
-                    console.error("Failed to find a category named " + categoryName);
-                }
-            }).catch(error => console.error("Failed to look up categories: " + error));
-        }
-
         async importTopic(topicId, options = {}) {
             if (!Number.isInteger(topicId)) {
                 return Promise.reject("topicId must be an integer.");
@@ -84,6 +72,18 @@
                 return Promise.reject("topicId must be an integer.");
             }
             console.log(await this.#getTopic(topicId));
+        }
+
+        #findChatbotCategoryId(categoryName) {
+            fetch("/categories.json").then(response => response.json()).then(result => {
+                let category = result.category_list.categories.find(c => c.name === categoryName);
+                if (category) {
+                    this.#chatbotCategoryId = category.id;
+                    console.log("Using chatbot category " + categoryName + " with ID " + this.#chatbotCategoryId);
+                } else {
+                    console.error("Failed to find a category named " + categoryName);
+                }
+            }).catch(error => console.error("Failed to look up categories: " + error));
         }
 
         async #getTopic(topicId) {
