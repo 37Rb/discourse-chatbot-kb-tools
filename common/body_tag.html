@@ -53,7 +53,7 @@
             let kbTopicTitle = this.#buildKbTopicTitle(kbPostContent.slice(0, kbPostContent.indexOf("\n")).trim());
 
             try {
-                if ('dryrun' in options && options['dryrun']) {
+                if ('dryRun' in options && options['dryRun']) {
                     console.log("Title: " + kbTopicTitle + "\n\nContent: " + kbPostContent);
                 } else if ('update' in options) {
                     let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update']);

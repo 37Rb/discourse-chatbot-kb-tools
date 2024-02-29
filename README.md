@@ -29,7 +29,7 @@ By default, it will look for a category named Chatbot to use as the knowledge ba
 x = new ChatbotKnowledgeBase("My Knowledge Base Category")
 ```
 
-### Import a topic to the knowledge base category
+### Import a topic
 
 Use importTopic to import a topic into the knowledge base.
 
@@ -37,9 +37,9 @@ Use importTopic to import a topic into the knowledge base.
 importTopic(topicId, options)
 ```
 
-* topicId - The source topic ID.
+* topicId - The source topic ID
 * options - An object to specify optional behavior. Available options are
-  * update: KB topic ID - Update an existing KB topic instead of creating a new one.
+  * update: KB topic ID - Update an existing KB topic instead of creating a new one
   * include: Array of post numbers - Only include the given post numbers
   * exclude: Array of post numbers - Exclude the given post numbers
 
@@ -69,8 +69,65 @@ Exclude posts 3, 5, and 6 from the KB topic.
 x.importTopic(26989, { exclude: [3,5,6] })
 ```
 
+### Import a web page
+
+Use importWebPage to import a web page into the knowledge base.
+
+```javascript
+importWebPage(url, options)
+```
+
+* url - The URL if the web page
+* options - An object to specify optional behavior. Available options are
+  * update: KB topic ID - Update an existing KB topic instead of creating a new one
+  * removeTags: Array of HTML tags - Don't import content in these tags
+  * removeIds: Array of HTML IDs - Don't import content in in elements with these IDs
+  * dryRun: Boolean - Just print the markdown without importing anything
+
+importWebPage uses [Turndown](https://github.com/mixmark-io/turndown) to convert HTML pages to markdown before importing them into the knowledge base.
+
+Web pages often have a lot of extra stuff you don't want to import. Use the removeTags and removeIds options to exclude content you don't want in the knowledge base.
+
+Tags in the defaultImportWebPageRemoveTags property are exluded by default. You can modify this or create a new array for the removeTags option.
+
+```javascript
+x.defaultImportWebPageRemoveTags = ['meta', 'style', 'link', 'script', 'noscript', 'applet', 'area', 'object', 'nav', 'base', 'embed', 'object', 'param', 'header', 'hgroup', 'footer']
+```
+
+#### Examples
+
+Import https://suretyhome.com/why-surety/ as a new KB topic.
+
+```javascript
+x.importWebPage("https://suretyhome.com/why-surety/")
+```
+
+Import https://suretyhome.com/why-surety/ by updating KB topic 28500. Do this when a web page that's already been imported has changed.
+
+```javascript
+x.importWebPage("https://suretyhome.com/why-surety/", { update: 28500 })
+```
+
+Don't include any content in the div with ID = "mini-cart".
+
+```javascript
+x.importWebPage("https://suretyhome.com/why-surety/", { removeIds: ["mini-cart"] })
+```
+
+Show the markdown instead of importing it into the knowledge base.
+
+```javascript
+x.importWebPage("https://suretyhome.com/why-surety/", { dryRun: true })
+```
+
 ## Installation
 
 Install from the Git repository.
 
 https://github.com/37Rb/discourse-chatbot-kb-tools.git
+
+ImportWebPage needs to access resources on other domains. You need to configure [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) and [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) to allow it.
+
+Configure [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) by in Discourse admin *content security policy script src* setting (found under Security). Add https://unpkg.com/turndown/dist/turndown.js as a script source so that [Turndown](https://github.com/mixmark-io/turndown) can be loaded.
+
+Configure [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) by adding an [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin) HTTP header to the website you will import from allowing your Discourse forum origin (https:// and domain name) to access content on that website. Alternatively, you can disable CORS checks in your browser when importing web pages.
