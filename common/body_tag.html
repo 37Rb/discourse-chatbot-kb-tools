@@ -28,7 +28,7 @@
 
             let sourceTopic = await this.#getTopic(topicId);
             let kbTopicTitle = this.#buildKbTopicTitle(sourceTopic.title);
-            let kbPostContent = this.#buildKbPostContent(sourceTopic, options);
+            let kbPostContent = this.#buildKbPostContentFromTopic(sourceTopic, options);
 
             try {
                 if ('update' in options) {
@@ -56,27 +56,18 @@
                 return Promise.reject("options must be an object.");
             }
 
-            await this.#loadTurndown();
-            let turndown = new TurndownService();
-            if (!('removeTags' in options)) {
-                options['removeTags'] = this.defaultImportWebPageRemoveTags;
-            }
-            turndown.remove(options['removeTags']);
-            if ('removeIds' in options) {
-                turndown.remove(node => node.id && Array.isArray(options['removeIds']) && options['removeIds'].includes(node.id));
-            }
-
             let response = await fetch(url);
             if (!response.ok) {
                 return Promise.reject("Failed to fetch " + url + ": " + response.status + " " + response.statusText);
             }
             let html = await response.text();
-            let markdown = turndown.turndown(html);
-            let kbTopicTitle = this.#buildKbTopicTitle(markdown.slice(0, markdown.indexOf("\n")).trim());
-            let kbPostContent = markdown;
+            let kbPostContent = await this.#buildKbPostContentFromHtml(html, options);
+            let kbTopicTitle = this.#buildKbTopicTitle(kbPostContent.slice(0, kbPostContent.indexOf("\n")).trim());
 
             try {
-                if ('update' in options) {
+                if ('dryrun' in options && options['dryrun']) {
+                    console.log("Title: " + kbTopicTitle + "\n\nContent: " + kbPostContent);
+                } else if ('update' in options) {
                     let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update']);
                     console.log("Imported " + url + " by updating KB topic " + kbTopicId);
                 } else {
@@ -158,7 +149,7 @@
             return "KB: " + sourceTitle;
         }
 
-        #buildKbPostContent(topic, options) {
+        #buildKbPostContentFromTopic(topic, options) {
             let header = "**Topic title is:** " + topic.title + "\n";
             if (topic.tags.length > 0) {
                 header += "**Topic tags are:** " + topic.tags.join(", ") + "\n";
@@ -175,6 +166,19 @@
             }, this);
 
             return header + "\n" + posts.join("\n\n");
+        }
+
+        async #buildKbPostContentFromHtml(html, options) {
+            await this.#loadTurndown();
+            let turndown = new TurndownService();
+            if (!('removeTags' in options)) {
+                options['removeTags'] = this.defaultImportWebPageRemoveTags;
+            }
+            turndown.remove(options['removeTags']);
+            if ('removeIds' in options) {
+                turndown.remove(node => node.id && Array.isArray(options['removeIds']) && options['removeIds'].includes(node.id));
+            }
+            return turndown.turndown(html);
         }
 
         #buildLinkToPost(post) {
