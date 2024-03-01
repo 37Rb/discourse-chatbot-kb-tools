@@ -3,11 +3,14 @@ Knowledge base management tools for Discourse Chatbot
 
 Discourse Chatbot is an AI chatbot plugin for Discourse that can be used to make a support bot on your forum. Visit [Meta](https://meta.discourse.org/t/discourse-chatbot-now-smarter-than-chatgpt/256652) and [Github](https://github.com/merefield/discourse-chatbot) to learn more about it.
 
-Discourse Chatbot uses [RAG](https://help.openai.com/en/articles/8868588-retrieval-augmented-generation-rag-and-semantic-search-for-gpts) to provide the AI model with domain-specific knowledge on your forum. While it's possible to let the bot access every public post on your forum, it may be benficial to limit access to a specific, non-public knowledge base category where you curate only high-quality posts that you want the bot to see when helping users. 
+Discourse Chatbot uses [RAG](https://help.openai.com/en/articles/8868588-retrieval-augmented-generation-rag-and-semantic-search-for-gpts) to provide the AI model with domain-specific knowledge of your forum. While it's possible to let the bot access every public post on your forum, it may be benficial to limit access to a specific, non-public "knowledge base" category where you curate only high-quality posts that you want the bot to see.
 
-Discourse Chatbot semantic-searches the forum for individual posts instead of topics which makes it challenging for the bot to find complete questions and answers. Often the question/problem is in one post while the answer/solution is in a later post. There may even be multiple back and forth posts leading up the the answer. The topic title and tags may also be useful to the bot but aren't in posts.
+Discourse Chatbot semantic-searches the forum for individual posts instead of topics which makes it challenging for the bot to find complete questions and answers. Often the question/problem is in one post while the answer/solution is in a later post. There may even be multiple back and forth posts leading up the the answer. The topic title and tags may also be useful to the bot but aren't included in this search because it's limited to posts.
 
-Chatbot Knowledge Base Tools help you import knowledge from your forum into the knowledge base category in a form that's easier for the bot to find and use. For example, you can import entire topics into the knowledge base as a single post so that the bot can see the entire conversation with all relevent context.
+Chatbot Knowledge Base Tools help you import knowledge from your forum & website into the knowledge base category in a format the bot to find and use. For example, you can:
+
+* Import entire topics into the knowledge base as a single post so that the bot can see the entire conversation with all relevent context.
+* Import pages from your website into the knowledge base so the bot can use them in addition to your forum content.
 
 ## Usage
 
@@ -84,9 +87,9 @@ importWebPage(url, options)
   * removeIds: Array of HTML IDs - Don't import content in in elements with these IDs
   * dryRun: Boolean - Just print the markdown without importing anything
 
-importWebPage uses [Turndown](https://github.com/mixmark-io/turndown) to convert HTML pages to markdown before importing them into the knowledge base.
+importWebPage() uses [Turndown](https://github.com/mixmark-io/turndown) to convert HTML pages to markdown before importing them into the knowledge base.
 
-Web pages often have a lot of extra stuff you don't want to import. Use the removeTags and removeIds options to exclude content you don't want in the knowledge base.
+Web pages have a lot of extra stuff you probably don't want to import. Use the removeTags and removeIds options to exclude content you don't want in the knowledge base.
 
 Tags in the defaultImportWebPageRemoveTags property are exluded by default. You can modify this or create a new array for the removeTags option.
 
@@ -129,6 +132,8 @@ updateAllImports(types = ['topic', 'page'])
 ```
 
 * types: Array of import types - The types to update. Defaults to all.
+
+It's recommended to use await with updateAllImports() so that you can see when it's done.
 
 #### Examples
 
