@@ -95,14 +95,18 @@
             return importMap;
         }
 
-        async updateAllImports() {
-            let topicMap = await this.getImportMap(['topic']);
-            for (const sourceId in topicMap) {
-                await this.importTopic(parseInt(sourceId), { update: topicMap[sourceId], noChangeQuiet: 1 });
+        async updateAllImports(types = ['topic', 'page']) {
+            if (types.includes('topic')) {
+                let topicMap = await this.getImportMap(['topic']);
+                for (const sourceId in topicMap) {
+                    await this.importTopic(parseInt(sourceId), { update: topicMap[sourceId], noChangeQuiet: 1 });
+                }
             }
-            let pageMap = await this.getImportMap(['page']);
-            for (const sourceId in pageMap) {
-                await this.importWebPage("https://" + sourceId, { update: pageMap[sourceId], noChangeQuiet: 1 })
+            if (types.includes('page')) {
+                let pageMap = await this.getImportMap(['page']);
+                for (const sourceId in pageMap) {
+                    await this.importWebPage("https://" + sourceId, { update: pageMap[sourceId], noChangeQuiet: 1 })
+                }
             }
             return Promise.resolve("Done");
         }
