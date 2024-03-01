@@ -23,7 +23,11 @@
             try {
                 if ('update' in options) {
                     let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update'], topicId, options['force']);
-                    console.log("Imported topic " + topicId + " by updating KB topic " + kbTopicId);
+                    if (kbTopicId) {
+                        console.log("Imported topic " + topicId + " by updating KB topic " + kbTopicId);
+                    } else if (!options['noChangeQuiet']) {
+                        console.log("Nothing has changed in topic " + topicId);
+                    }
                 } else {
                     let kbTopicId = await this.#createKbTopic(kbTopicTitle, kbPostContent);
                     console.log("Imported topic " + topicId + " as new KB topic " + kbTopicId);
@@ -55,7 +59,11 @@
                     console.log("Title: " + kbTopicTitle + "\n\nContent: " + kbPostContent);
                 } else if ('update' in options) {
                     let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update'], pageId, options['force']);
-                    console.log("Imported " + url + " by updating KB topic " + kbTopicId);
+                    if (kbTopicId) {
+                        console.log("Imported " + url + " by updating KB topic " + kbTopicId);
+                    } else if (!options['noChangeQuiet']) {
+                        console.log("Nothing has changed at " + url);
+                    }
                 } else {
                     let kbTopicId = await this.#createKbTopic(kbTopicTitle, kbPostContent);
                     console.log("Imported " + url + " as new KB topic " + kbTopicId);
@@ -90,12 +98,13 @@
         async updateAllImports() {
             let topicMap = await this.getImportMap(['topic']);
             for (const sourceId in topicMap) {
-                await this.importTopic(parseInt(sourceId), { update: topicMap[sourceId] });
+                await this.importTopic(parseInt(sourceId), { update: topicMap[sourceId], noChangeQuiet: 1 });
             }
             let pageMap = await this.getImportMap(['page']);
             for (const sourceId in pageMap) {
-                await this.importWebPage("https://" + sourceId, { update: pageMap[sourceId] })
+                await this.importWebPage("https://" + sourceId, { update: pageMap[sourceId], noChangeQuiet: 1 })
             }
+            return Promise.resolve("Done");
         }
 
         #findChatbotCategoryId(categoryName) {
@@ -149,30 +158,38 @@
                 return Promise.reject("KB topic " + kbTopicId + " has " + kbTopic.posts_count + " posts. Expected 1.");
             }
 
-            let response = await fetch("/t/-/" + kbTopicId + ".json", {
-                method: "PUT",
-                headers: this.#buildApiRequestHeaders(),
-                body: JSON.stringify({
-                    title: kbTopicTitle,
-                }),
-            });
-            if (!response.ok) {
-                return Promise.reject("Error updating KB topic " + kbTopicId + " title: " + response.status + " " + response.statusText);
+            let updatedSomething = false;
+
+            if (kbTopicTitle !== kbTopic.title) {
+                let response = await fetch("/t/-/" + kbTopicId + ".json", {
+                    method: "PUT",
+                    headers: this.#buildApiRequestHeaders(),
+                    body: JSON.stringify({
+                        title: kbTopicTitle,
+                    }),
+                });
+                if (!response.ok) {
+                    return Promise.reject("Error updating KB topic " + kbTopicId + " title: " + response.status + " " + response.statusText);
+                }
+                updatedSomething = true;
             }
 
-            response = await fetch("/posts/" + kbTopic.post_stream.posts[0].id + ".json", {
-                method: "PUT",
-                headers: this.#buildApiRequestHeaders(),
-                body: JSON.stringify({
-                    raw: kbPostContent,
-                    edit_reason: "Updated with KB tools.",
-                }),
-            });
-            if (response.ok) {
-                return Promise.resolve(kbTopicId);
-            } else {
-                return Promise.reject("Error updating KB topic " + kbTopicId + " post content: " + response.status + " " + response.statusText);
+            if (kbPostContent !== kbTopic.post_stream.posts[0].raw) {
+                let response = await fetch("/posts/" + kbTopic.post_stream.posts[0].id + ".json", {
+                    method: "PUT",
+                    headers: this.#buildApiRequestHeaders(),
+                    body: JSON.stringify({
+                        raw: kbPostContent,
+                        edit_reason: "Updated with KB tools.",
+                    }),
+                });
+                if (!response.ok) {
+                    return Promise.reject("Error updating KB topic " + kbTopicId + " post content: " + response.status + " " + response.statusText);
+                }
+                updatedSomething = true;
             }
+
+            return updatedSomething ? Promise.resolve(kbTopicId) : Promise.resolve(false);
         }
 
         #buildKbPostContentFromTopic(topic, options) {
