@@ -29,9 +29,9 @@ By default, it will look for a category named Chatbot to use as the knowledge ba
 x = new ChatbotKnowledgeBase("My Knowledge Base Category")
 ```
 
-### Import a topic
+### Import a Topic
 
-Use importTopic to import a topic into the knowledge base.
+Use importTopic() to import a topic into the knowledge base.
 
 ```javascript
 importTopic(topicId, options)
@@ -69,9 +69,9 @@ Exclude posts 3, 5, and 6 from the KB topic.
 x.importTopic(26989, { exclude: [3,5,6] })
 ```
 
-### Import a web page
+### Import a Web Page
 
-Use importWebPage to import a web page into the knowledge base.
+Use importWebPage() to import a web page into the knowledge base.
 
 ```javascript
 importWebPage(url, options)
@@ -118,6 +118,30 @@ Show the markdown instead of importing it into the knowledge base.
 
 ```javascript
 x.importWebPage("https://suretyhome.com/why-surety/", { dryRun: true })
+```
+
+### Update All Imports
+
+Use updateAllImports() to update all existing imports that have changed.
+
+```javascript
+updateAllImports(types = ['topic', 'page'])
+```
+
+* types: Array of import types - The types to update. Defaults to all.
+
+#### Examples
+
+Update all imports. (of all types)
+
+```javascript
+await x.updateAllImports()
+```
+
+Update all topic imports.
+
+```javascript
+await x.updateAllImports(['topic'])
 ```
 
 ## Installation
