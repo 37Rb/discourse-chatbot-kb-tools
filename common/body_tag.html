@@ -72,6 +72,32 @@
             console.log(await this.#getTopic(topicId));
         }
 
+        async getImportMap(types = ['topic', 'page']) {
+            let importMap = {};
+            for (let page = 0; true; page++) {
+                let response = await fetch("/latest.json?category=" + this.#chatbotCategoryId + "&page=" + page);
+                let result = await response.json();
+                for (const topic of result.topic_list.topics) {
+                    this.#extractImportMapping(importMap, types, topic);
+                }
+                if (result.topic_list.topics.length < result.topic_list.per_page) {
+                    break;
+                }
+            }
+            return importMap;
+        }
+
+        async updateAllImports() {
+            let topicMap = await this.getImportMap(['topic']);
+            for (const sourceId in topicMap) {
+                await this.importTopic(parseInt(sourceId), { update: topicMap[sourceId] });
+            }
+            let pageMap = await this.getImportMap(['page']);
+            for (const sourceId in pageMap) {
+                await this.importWebPage("https://" + sourceId, { update: pageMap[sourceId] })
+            }
+        }
+
         #findChatbotCategoryId(categoryName) {
             fetch("/categories.json").then(response => response.json()).then(result => {
                 let category = result.category_list.categories.find(c => c.name === categoryName);
@@ -197,6 +223,20 @@
                 linkUrl += "/" + post.post_number;
             }
             return linkUrl;
+        }
+
+        #extractImportMapping(importMap, types, topic) {
+            if (types.includes('topic') && topic.title.startsWith("KB topic ")) {
+                let match = topic.title.match(/^KB topic (\d+):/);
+                if (match.length === 2) {
+                    importMap[match[1]] = topic.id;
+                }
+            } else if (types.includes('page') && topic.title.startsWith("KB page ")) {
+                let match = topic.title.match(/^KB page (.+)/);
+                if (match.length === 2) {
+                    importMap[match[1]] = topic.id;
+                }
+            }
         }
 
         #buildApiRequestHeaders() {
