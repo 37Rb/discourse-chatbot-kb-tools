@@ -188,7 +188,7 @@
                 updatedSomething = true;
             }
 
-            if (kbPostContent !== kbTopic.post_stream.posts[0].raw) {
+            if (kbPostContent.trim() !== kbTopic.post_stream.posts[0].raw.trim()) {
                 let response = await this.#fetchApi("/posts/" + kbTopic.post_stream.posts[0].id + ".json", {
                     method: "PUT",
                     headers: this.#buildApiRequestHeaders(),
