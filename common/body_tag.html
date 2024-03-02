@@ -118,8 +118,7 @@
         }
 
         async #findCategoryId(categoryName) {
-            let response = await fetch("/categories.json");
-            let result = await response.json();
+            let result = await this.#fetchApi("/categories.json");
             let category = result.category_list.categories.find(c => c.name === categoryName);
             return category ? Promise.resolve(category.id) : Promise.reject(categoryName + " not found");
         }
@@ -132,14 +131,12 @@
         }
 
         async #getTopic(topicId) {
-            let response = await fetch("/t/" + topicId + ".json?include_raw=true");
-            return response.json();
+            return await this.#fetchApi("/t/" + topicId + ".json?include_raw=true");
         }
 
         async #forEachTopicInCategory(categoryId, callback) {
             for (let page = 0; true; page++) {
-                let response = await fetch("/latest.json?category=" + categoryId + "&page=" + page);
-                let result = await response.json();
+                let result = await this.#fetchApi("/latest.json?category=" + categoryId + "&page=" + page);
                 for (const topic of result.topic_list.topics) {
                     await callback(topic);
                 }
@@ -150,7 +147,7 @@
         }
 
         async #createKbTopic(kbTopicTitle, kbPostContent) {
-            let response = await fetch("/posts.json", {
+            let response = await this.#fetchApi("/posts.json", {
                 method: "POST",
                 headers: this.#buildApiRequestHeaders(),
                 body: JSON.stringify({
@@ -159,12 +156,7 @@
                     category: this.#chatbotCategoryId,
                 }),
             });
-            if (response.ok) {
-                const result = await response.json();
-                return Promise.resolve(result.topic_id);
-            } else {
-                return Promise.reject("Error creating KB topic: " + response.status + " " + response.statusText);
-            }
+            return Promise.resolve(result.topic_id);
         }
 
         async #updateKbTopic(kbTopicTitle, kbPostContent, kbTopicId, sourceId, force) {
@@ -186,21 +178,18 @@
             let updatedSomething = false;
 
             if (kbTopicTitle !== kbTopic.title) {
-                let response = await fetch("/t/-/" + kbTopicId + ".json", {
+                let response = await this.#fetchApi("/t/-/" + kbTopicId + ".json", {
                     method: "PUT",
                     headers: this.#buildApiRequestHeaders(),
                     body: JSON.stringify({
                         title: kbTopicTitle,
                     }),
                 });
-                if (!response.ok) {
-                    return Promise.reject("Error updating KB topic " + kbTopicId + " title: " + response.status + " " + response.statusText);
-                }
                 updatedSomething = true;
             }
 
             if (kbPostContent !== kbTopic.post_stream.posts[0].raw) {
-                let response = await fetch("/posts/" + kbTopic.post_stream.posts[0].id + ".json", {
+                let response = await this.#fetchApi("/posts/" + kbTopic.post_stream.posts[0].id + ".json", {
                     method: "PUT",
                     headers: this.#buildApiRequestHeaders(),
                     body: JSON.stringify({
@@ -208,9 +197,6 @@
                         edit_reason: "Updated with KB tools.",
                     }),
                 });
-                if (!response.ok) {
-                    return Promise.reject("Error updating KB topic " + kbTopicId + " post content: " + response.status + " " + response.statusText);
-                }
                 updatedSomething = true;
             }
 
@@ -286,6 +272,25 @@
                 "Content-Type": "application/json",
                 "X-Csrf-Token": document.head.querySelector("meta[name=csrf-token]")?.content
             };
+        }
+
+        async #fetchApi(resource, options = {}) {
+            let response = await fetch(resource, options);
+            while (response.status === 429) {
+                let retryAfter = response.headers.get('Retry-After') || 10;
+                let reason = response.headers.get('Discourse-Rate-Limit-Error-Code') || 'no reason given';
+                console.log("HTTP 429 Too Many Requests (" + reason + "), retrying after " + retryAfter + " seconds");
+                await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+                response = await fetch(resource, options);
+            }
+            if (response.status === 422) {
+                return Promise.reject("HTTP 422 Unprocessable Content, does the topic title alreay exist?");
+            }
+            if (response.ok) {
+                return response.json();
+            } else {
+                return Promise.reject("HTTP " + response.status + ", " + response.statusText);
+            }
         }
 
         #isObject(x) {
