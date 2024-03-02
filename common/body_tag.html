@@ -82,16 +82,9 @@
 
         async getImportMap(types = ['topic', 'page']) {
             let importMap = {};
-            for (let page = 0; true; page++) {
-                let response = await fetch("/latest.json?category=" + this.#chatbotCategoryId + "&page=" + page);
-                let result = await response.json();
-                for (const topic of result.topic_list.topics) {
-                    this.#extractImportMapping(importMap, types, topic);
-                }
-                if (result.topic_list.topics.length < result.topic_list.per_page) {
-                    break;
-                }
-            }
+            await this.#forEachTopicInCategory(this.#chatbotCategoryId, topic => {
+                this.#extractImportMapping(importMap, types, topic);
+            })
             return importMap;
         }
 
@@ -111,21 +104,49 @@
             return Promise.resolve("Done");
         }
 
-        #findChatbotCategoryId(categoryName) {
-            fetch("/categories.json").then(response => response.json()).then(result => {
-                let category = result.category_list.categories.find(c => c.name === categoryName);
-                if (category) {
-                    this.#chatbotCategoryId = category.id;
-                    console.log("Using chatbot category " + categoryName + " with ID " + this.#chatbotCategoryId);
+        async importCategory(categoryName) {
+            let categoryId = await this.#findCategoryId(categoryName);
+            let importMap = await this.getImportMap(['topic']);
+            await this.#forEachTopicInCategory(categoryId, async topic => {
+                if (topic.id in importMap) {
+                    await this.importTopic(topic.id, { update: importMap[topic.id], 'noChangeQuiet': 1 });
                 } else {
-                    console.error("Failed to find a category named " + categoryName);
+                    await this.importTopic(topic.id);
                 }
-            }).catch(error => console.error("Failed to look up categories: " + error));
+            })
+            return Promise.resolve("Done");
+        }
+
+        async #findCategoryId(categoryName) {
+            let response = await fetch("/categories.json");
+            let result = await response.json();
+            let category = result.category_list.categories.find(c => c.name === categoryName);
+            return category ? Promise.resolve(category.id) : Promise.reject(categoryName + " not found");
+        }
+
+        #findChatbotCategoryId(categoryName) {
+            this.#findCategoryId(categoryName).then(categoryId => {
+                this.#chatbotCategoryId = categoryId;
+                console.log("Using chatbot category " + categoryName + " with ID " + this.#chatbotCategoryId);
+            }).catch(error => console.error("Failed to find Chatbot KB category: " + error));
         }
 
         async #getTopic(topicId) {
             let response = await fetch("/t/" + topicId + ".json?include_raw=true");
             return response.json();
+        }
+
+        async #forEachTopicInCategory(categoryId, callback) {
+            for (let page = 0; true; page++) {
+                let response = await fetch("/latest.json?category=" + categoryId + "&page=" + page);
+                let result = await response.json();
+                for (const topic of result.topic_list.topics) {
+                    await callback(topic);
+                }
+                if (result.topic_list.topics.length < result.topic_list.per_page) {
+                    break;
+                }
+            }
         }
 
         async #createKbTopic(kbTopicTitle, kbPostContent) {
