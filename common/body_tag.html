@@ -16,11 +16,11 @@
                 return Promise.reject("options must be an object.");
             }
 
-            let sourceTopic = await this.#getTopic(topicId);
-            let kbTopicTitle = "KB topic " + topicId + ": " + sourceTopic.title;
-            let kbPostContent = this.#buildKbPostContentFromTopic(sourceTopic, options);
-
             try {
+                let sourceTopic = await this.#getTopic(topicId);
+                let kbTopicTitle = "KB topic " + topicId + ": " + sourceTopic.title;
+                let kbPostContent = this.#buildKbPostContentFromTopic(sourceTopic, options);
+
                 if ('update' in options) {
                     let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update'], topicId, options['force']);
                     if (kbTopicId) {
@@ -50,11 +50,11 @@
                 return Promise.reject("options must be an object.");
             }
 
-            let pageId = url.replace(/(^\w+:|^)\/\//, '');
-            let kbPostContent = await this.#buildKbPostContentFromWebPage(url, options);
-            let kbTopicTitle = "KB page " + pageId;
-
             try {
+                let pageId = url.replace(/(^\w+:|^)\/\//, '');
+                let kbPostContent = await this.#buildKbPostContentFromWebPage(url, options);
+                let kbTopicTitle = "KB page " + pageId;
+
                 if ('dryRun' in options && options['dryRun']) {
                     console.log("Title: " + kbTopicTitle + "\n\nContent: " + kbPostContent);
                 } else if ('update' in options) {
