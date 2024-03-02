@@ -89,32 +89,35 @@
         }
 
         async updateAllImports(types = ['topic', 'page']) {
+            let count = 0;
             if (types.includes('topic')) {
                 let topicMap = await this.getImportMap(['topic']);
                 for (const sourceId in topicMap) {
+                    count++;
                     await this.importTopic(parseInt(sourceId), { update: topicMap[sourceId], noChangeQuiet: 1 });
                 }
             }
             if (types.includes('page')) {
                 let pageMap = await this.getImportMap(['page']);
                 for (const sourceId in pageMap) {
+                    count++;
                     await this.importWebPage("https://" + sourceId, { update: pageMap[sourceId], noChangeQuiet: 1 })
                 }
             }
-            return Promise.resolve("Done");
+            return Promise.resolve("Updated " + count + " imports");
         }
 
         async importCategory(categoryName) {
             let categoryId = await this.#findCategoryId(categoryName);
             let importMap = await this.getImportMap(['topic']);
-            await this.#forEachTopicInCategory(categoryId, async topic => {
+            let count = await this.#forEachTopicInCategory(categoryId, async topic => {
                 if (topic.id in importMap) {
                     await this.importTopic(topic.id, { update: importMap[topic.id], 'noChangeQuiet': 1 });
                 } else {
                     await this.importTopic(topic.id);
                 }
             })
-            return Promise.resolve("Done");
+            return Promise.resolve("Imported " + count + " topics from category " + categoryName);
         }
 
         async #findCategoryId(categoryName) {
@@ -135,15 +138,18 @@
         }
 
         async #forEachTopicInCategory(categoryId, callback) {
+            let count = 0;
             for (let page = 0; true; page++) {
                 let result = await this.#fetchApi("/latest.json?category=" + categoryId + "&page=" + page);
                 for (const topic of result.topic_list.topics) {
+                    count++;
                     await callback(topic);
                 }
                 if (result.topic_list.topics.length < result.topic_list.per_page) {
                     break;
                 }
             }
+            return Promise.resolve(count);
         }
 
         async #createKbTopic(kbTopicTitle, kbPostContent) {
