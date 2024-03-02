@@ -131,9 +131,9 @@ Use updateAllImports() to update all existing imports that have changed.
 updateAllImports(types = ['topic', 'page'])
 ```
 
-* types: Array of import types - The types to update. Defaults to all.
+* types: Array of import types - The types to update, defaults to all
 
-It's recommended to use await with updateAllImports() so that you can see when it's done.
+Use await with updateAllImports() so that you can see when it's done.
 
 #### Examples
 
@@ -147,6 +147,26 @@ Update all topic imports.
 
 ```javascript
 await x.updateAllImports(['topic'])
+```
+
+### Import a Category
+
+Use importCategory() to import (or update) every topic in a category.
+
+```javascript
+importCategory(categoryName)
+```
+
+* categoryName: The name of the category to import from
+
+Use await with importCategory() so that you can see when it's done.
+
+#### Examples
+
+Import (or update) every topic in the How To category.
+
+```javascript
+await x.importCategory("How To")
 ```
 
 ## Installation
