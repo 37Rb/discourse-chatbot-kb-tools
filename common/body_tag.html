@@ -158,7 +158,7 @@
         }
 
         async #createKbTopic(kbTopicTitle, kbPostContent) {
-            let response = await this.#fetchApi("/posts.json", {
+            let result = await this.#fetchApi("/posts.json", {
                 method: "POST",
                 headers: this.#buildApiRequestHeaders(),
                 body: JSON.stringify({
@@ -189,7 +189,7 @@
             let updatedSomething = false;
 
             if (kbTopicTitle !== kbTopic.title) {
-                let response = await this.#fetchApi("/t/-/" + kbTopicId + ".json", {
+                await this.#fetchApi("/t/-/" + kbTopicId + ".json", {
                     method: "PUT",
                     headers: this.#buildApiRequestHeaders(),
                     body: JSON.stringify({
@@ -200,7 +200,7 @@
             }
 
             if (kbPostContent.trim() !== kbTopic.post_stream.posts[0].raw.trim()) {
-                let response = await this.#fetchApi("/posts/" + kbTopic.post_stream.posts[0].id + ".json", {
+                await this.#fetchApi("/posts/" + kbTopic.post_stream.posts[0].id + ".json", {
                     method: "PUT",
                     headers: this.#buildApiRequestHeaders(),
                     body: JSON.stringify({
