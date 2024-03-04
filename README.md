@@ -7,7 +7,7 @@ Discourse Chatbot uses [RAG](https://help.openai.com/en/articles/8868588-retriev
 
 Discourse Chatbot semantic-searches the forum for individual posts instead of topics which makes it challenging for the bot to find complete questions and answers. Often the question/problem is in one post while the answer/solution is in a later post. There may even be multiple back and forth posts leading up the the answer. The topic title and tags may also be useful to the bot but aren't included in this search because it's limited to posts.
 
-Chatbot Knowledge Base Tools help you import knowledge from your forum & website into the knowledge base category in a format the bot to find and use. For example, you can:
+Chatbot Knowledge Base Tools help you import knowledge from your forum & website into the knowledge base category in a format that's well-suited for the bot. For example, you can:
 
 * Import entire topics into the knowledge base as a single post so that the bot can see the entire conversation with all relevent context.
 * Import pages from your website into the knowledge base so the bot can use them in addition to your forum content.
