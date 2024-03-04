@@ -72,6 +72,34 @@ Exclude posts 3, 5, and 6 from the KB topic.
 x.importTopic(26989, { exclude: [3,5,6] })
 ```
 
+### Import a Category
+
+Use importCategory() to import (or update) every topic in a category.
+
+```javascript
+importCategory(categoryName, options)
+```
+
+* categoryName: The name of the category to import from
+* options - An object to specify optional behavior. Available options are
+  * limit: Integer - Only import the *limit* latest topics in the category
+
+Use await with importCategory() so that you can see when it's done.
+
+#### Examples
+
+Import (or update) every topic in the How To category.
+
+```javascript
+await x.importCategory("How To")
+```
+
+Import (or update) the 25 latest topics in the How To category.
+
+```javascript
+await x.importCategory("How To", { limit: 25 })
+```
+
 ### Import a Web Page
 
 Use importWebPage() to import a web page into the knowledge base.
@@ -147,26 +175,6 @@ Update all topic imports.
 
 ```javascript
 await x.updateAllImports(['topic'])
-```
-
-### Import a Category
-
-Use importCategory() to import (or update) every topic in a category.
-
-```javascript
-importCategory(categoryName)
-```
-
-* categoryName: The name of the category to import from
-
-Use await with importCategory() so that you can see when it's done.
-
-#### Examples
-
-Import (or update) every topic in the How To category.
-
-```javascript
-await x.importCategory("How To")
 ```
 
 ## Installation
