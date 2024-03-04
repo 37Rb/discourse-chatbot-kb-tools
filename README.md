@@ -179,12 +179,25 @@ await x.updateAllImports(['topic'])
 
 ## Installation
 
-Install from the Git repository.
+### Install Theme Component
+
+Install as a theme component from the Git repository.
 
 https://github.com/37Rb/discourse-chatbot-kb-tools.git
+
+### Security Setup
 
 ImportWebPage needs to access resources on other domains. You need to configure [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) and [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) to allow it.
 
 Configure [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) by in Discourse admin *content security policy script src* setting (found under Security). Add https://unpkg.com/turndown/dist/turndown.js as a script source so that [Turndown](https://github.com/mixmark-io/turndown) can be loaded.
 
 Configure [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) by adding an [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin) HTTP header to the website you will import from allowing your Discourse forum origin (https:// and domain name) to access content on that website. Alternatively, you can disable CORS checks in your browser when importing web pages.
+
+### JavaScript Console Preferences
+
+Sometimes the Discourse API responds with an error status code even during normal usage. For example
+
+* If you try to import a topic that's already been imported without using the update option then the API will respond with 422 Unprocessable Content.
+* During bulk imports the API will sometimes respond with 429 Too Many Requests, asking the client to slow down.
+
+These are normal and the tools handle them fine but the Javascript console might show them as big red errors which is annoying. You can [configure it to hide those](https://developer.chrome.com/docs/devtools/console/reference#network).
