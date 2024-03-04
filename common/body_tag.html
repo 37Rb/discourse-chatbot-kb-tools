@@ -107,15 +107,18 @@
             return Promise.resolve("Updated " + count + " imports");
         }
 
-        async importCategory(categoryName) {
+        async importCategory(categoryName, options = {}) {
             let categoryId = await this.#findCategoryId(categoryName);
             let importMap = await this.getImportMap(['topic']);
-            let count = await this.#forEachTopicInCategory(categoryId, async topic => {
+            let count = 0;
+            await this.#forEachTopicInCategory(categoryId, async topic => {
                 if (topic.id in importMap) {
                     await this.importTopic(topic.id, { update: importMap[topic.id], 'noChangeQuiet': 1 });
                 } else {
                     await this.importTopic(topic.id);
                 }
+                count++;
+                return 'limit' in options ? count < options['limit'] : true;
             })
             return Promise.resolve("Imported " + count + " topics from category " + categoryName);
         }
@@ -143,7 +146,9 @@
                 let result = await this.#fetchApi("/latest.json?category=" + categoryId + "&page=" + page);
                 for (const topic of result.topic_list.topics) {
                     count++;
-                    await callback(topic);
+                    if (await callback(topic) === false) {
+                        return Promise.resolve(count);
+                    }
                 }
                 if (result.topic_list.topics.length < result.topic_list.per_page) {
                     break;
