@@ -193,7 +193,13 @@ Configure [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) by in Dis
 
 Configure [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) by adding an [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin) HTTP header to the website you will import from allowing your Discourse forum origin (https:// and domain name) to access content on that website. Alternatively, you can disable CORS checks in your browser when importing web pages.
 
-### JavaScript Console Preferences
+### JavaScript Console
+
+#### Why JavaScript Console?
+
+KB tools are used via the JavaScript console because it's the easiest way to run code as a logged in user without having to pass around API keys or develop a GUI. If they get heavily used it may make sense in the future to build them into the Discourse GUI.
+
+#### Hide Network Errors
 
 Sometimes the Discourse API responds with an error status code even during normal usage. For example
 
@@ -201,3 +207,4 @@ Sometimes the Discourse API responds with an error status code even during norma
 * During bulk imports the API will sometimes respond with 429 Too Many Requests, asking the client to slow down.
 
 These are normal and the tools handle them fine but the Javascript console might show them as big red errors which is annoying. You can [configure it to hide those](https://developer.chrome.com/docs/devtools/console/reference#network).
+
