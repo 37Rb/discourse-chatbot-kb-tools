@@ -210,7 +210,7 @@ These are normal and the tools handle them fine but the Javascript console might
 
 # Discourse Chatbot Embedding Tools
 
-Semantic search is great but trying to optimize or troubleshoot it can be difficult because it happens behind the scenes. Embeddings Tools is a command line program that helps you see what's happening behind the curtain. You can easily
+Semantic search is great but trying to optimize or troubleshoot it can be difficult because it happens behind the scenes. Embedding Tools is a command line program that helps you see what's happening behind the curtain. You can easily
 
 * Run a semantic search and see which posts show up at the top, along with their similary scores
 * Calulate the similarity score between a search query and post embedding
