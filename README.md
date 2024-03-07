@@ -208,3 +208,156 @@ Sometimes the Discourse API responds with an error status code even during norma
 
 These are normal and the tools handle them fine but the Javascript console might show them as big red errors which is annoying. You can [configure it to hide those](https://developer.chrome.com/docs/devtools/console/reference#network).
 
+# Discourse Chatbot Embedding Tools
+
+Semantic search is great but trying to optimize or troubleshoot it can be difficult because it happens behind the scenes. Embeddings Tools is a command line program that helps you see what's happening behind the curtain. You can easily
+
+* Run a semantic search and see which posts show up at the top, along with their similary scores
+* Calulate the similarity score between a search query and post embedding
+* Get an embedding for a search query from OpenAI
+
+## Usage
+
+It's a python script that lives in the "external" folder of the Git repository.
+
+```
+% cd external
+% ./embeddings.py -h
+usage: embeddings.py [-h] {embedding,similarity,search} ...
+
+Discourse Chatbot embedding tools.
+
+positional arguments:
+  {embedding,similarity,search}
+                        Available commands
+    embedding           Show the embedding for a query
+    similarity          Show the similarity between a post embedding and a query
+    search              Show search results for a query
+
+options:
+  -h, --help            show this help message and exit
+```
+
+### Run Semantic Search
+
+Show the top search results of a semantic search for the query across all the post embeddings.
+
+```
+% ./embeddings.py search -h
+usage: embeddings.py search [-h] [-l LIMIT] query
+
+positional arguments:
+  query                 The query
+
+options:
+  -h, --help            show this help message and exit
+  -l LIMIT, --limit LIMIT
+                        Show this many search results
+```
+
+#### Examples
+
+Semantic search for the query, "Mount a PG9303".
+
+```
+% ./embeddings.py search "Mount a PG9303"
+```
+
+Semantic search for the query, "Mount a PG9303" and only show the top 3 results.
+
+```
+% ./embeddings.py search "Mount a PG9303"  --limit 3
+```
+
+### Calculate Similarity Score
+
+Calculate the similarity score between a query and a specific post embedding. The similarity score is 1 minus the cosine distance between the query embedding and the post embedding.
+
+```
+% ./embeddings.py similarity -h                    
+usage: embeddings.py similarity [-h] [-e EMBEDDING] [-p POST] [-t TOPIC] [-n NUMBER] query
+
+positional arguments:
+  query                 The query
+
+options:
+  -h, --help            show this help message and exit
+  -e EMBEDDING, --embedding EMBEDDING
+                        The embedding ID
+  -p POST, --post POST  The post ID
+  -t TOPIC, --topic TOPIC
+                        The topic ID
+  -n NUMBER, --number NUMBER
+                        The post number in a topic
+```
+
+One of --embedding, --post, or --topic are required to find the post embedding that the query will be compared to.
+
+#### Examples
+
+Show the similarity score between the first post in topic 28476 and the query, "Mount a PG9303".
+
+```
+ % ./embeddings.py similarity "Mount a PG9303" --topic 28476
+```
+
+### Get Embedding
+
+Get the embedding vector for a query from OpenAI.
+
+```
+% ./embeddings.py embedding -h
+usage: embeddings.py embedding [-h] query
+
+positional arguments:
+  query       The query
+
+options:
+  -h, --help  show this help message and exit
+```
+
+#### Examples
+
+```
+% ./embeddings.py embedding "Mount a PG9303"
+```
+
+## Installation
+
+Clone the Git repository.
+
+```
+% git clone https://github.com/37Rb/discourse-chatbot-kb-tools.git
+```
+
+The script requires Python3 to be installed. Then install these pip packages.
+
+```
+% pip install scipy
+% pip install openai
+```
+
+Export your Chatbot embeddings to a CSV file using the [Data Explorer](https://www.discourse.org/plugins/data-explorer.html) plugin. Create the following query.
+
+```sql
+SELECT e.id, e.post_id AS post, p.topic_id AS topic, p.post_number,
+       t.title as topic_title, e.embedding
+FROM chatbot_post_embeddings e LEFT JOIN
+     posts p ON e.post_id = p.id JOIN
+     topics t ON p.topic_id = t.id
+WHERE p.deleted_at IS NULL
+```
+
+Run it and then download the results as CSV. Once downloaded, set your EMBEDDINGS_FILE environment variable as the path to that CSV file. This is how the script can search your embeddings.
+
+```
+% export EMBEDDINGS_FILE=~/Downloads/chatbot-embeddings-blah-blah-blah.csv
+```
+
+Set your OPENAI_API_KEY environment variable to an API key you get from your OpenAI account.
+
+```
+% export OPENAI_API_KEY=XXXXXXXXXXXXXXXXXXXXXXX
+```
+
+Now you should be able to run the script.
