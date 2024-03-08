@@ -51,12 +51,20 @@ def find_post_embedding_row(args):
 
 
 def similarity_command(args):
-    if not args.embedding and not args.post and not args.topic:
-        sys.exit("One of --embedding, --post, or --topic are required to find the post embedding")
+    if not args.embedding and not args.post and not args.topic and not args.file and not args.string:
+        sys.exit("One of --embedding, --post, --topic, --file, or --string are required")
     query_embedding = get_embedding(args.query)
-    row = find_post_embedding_row(args) or sys.exit("Could not find post embedding")
-    post_embedding = json.loads(by_header(row, 'embedding'))
-    print("Similarity to topic " + by_header(row, 'topic') + " post " + by_header(row, 'post_number') + " is " + format(1 - cosine(query_embedding, post_embedding), '.6f'))
+    if args.string:
+        embedding = get_embedding(args.string)
+        print("Similarity to the given string is " + format(1 - cosine(query_embedding, embedding), '.6f'))
+    elif args.file:
+        with open(args.file, 'r') as f:
+            embedding = get_embedding(f.read())
+            print("Similarity to the contents of " + args.file + " is " + format(1 - cosine(query_embedding, embedding), '.6f'))
+    else:
+        row = find_post_embedding_row(args) or sys.exit("Could not find post embedding")
+        embedding = json.loads(by_header(row, 'embedding'))
+        print("Similarity to topic " + by_header(row, 'topic') + " post " + by_header(row, 'post_number') + " is " + format(1 - cosine(query_embedding, embedding), '.6f'))
 
 
 def search_command(args):
@@ -90,11 +98,13 @@ show_parser = subparsers.add_parser('embedding', help='Show the embedding for a 
 show_parser.add_argument('query', help='The query')
 show_parser.set_defaults(func=embedding_command)
 
-similarity_parser = subparsers.add_parser('similarity', help='Show the similarity between a post embedding and a query')
-similarity_parser.add_argument('-e', '--embedding', type=int, help='The embedding ID')
-similarity_parser.add_argument('-p', '--post', type=int, help='The post ID')
-similarity_parser.add_argument('-t', '--topic', type=int, help='The topic ID')
-similarity_parser.add_argument('-n', '--number', type=int, default=1, help='The post number in a topic')
+similarity_parser = subparsers.add_parser('similarity', help='Show the similarity between a post, file, or string and a query')
+similarity_parser.add_argument('-e', '--embedding', type=int, help='Compare to the embedding with ID')
+similarity_parser.add_argument('-p', '--post', type=int, help='Compare to the post with ID')
+similarity_parser.add_argument('-t', '--topic', type=int, help='Compare to a post in the topic with ID')
+similarity_parser.add_argument('-n', '--number', type=int, default=1, help='The post number in a topic (used with --topic)')
+similarity_parser.add_argument('-f', '--file', help='Compare to the contents of a file')
+similarity_parser.add_argument('-s', '--string', help='Compare the query to a given string')
 similarity_parser.add_argument('query', help='The query')
 similarity_parser.set_defaults(func=similarity_command)
 

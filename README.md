@@ -231,7 +231,7 @@ positional arguments:
   {embedding,similarity,search}
                         Available commands
     embedding           Show the embedding for a query
-    similarity          Show the similarity between a post embedding and a query
+    similarity          Show the similarity between a post, file, or string and a query
     search              Show search results for a query
 
 options:
@@ -271,11 +271,11 @@ Semantic search for the query, "Mount a PG9303" and only show the top 3 results.
 
 ### Calculate Similarity Score
 
-Calculate the similarity score between a query and a specific post embedding. The similarity score is 1 minus the cosine distance between the query embedding and the post embedding.
+Calculate the similarity score between a query and a specific post embedding, a string, or the contents of a file. The similarity score is 1 minus the cosine distance between the query embedding and the post embedding.
 
 ```
-% ./embeddings.py similarity -h                    
-usage: embeddings.py similarity [-h] [-e EMBEDDING] [-p POST] [-t TOPIC] [-n NUMBER] query
+% ./embeddings.py similarity -h
+usage: embeddings.py similarity [-h] [-e EMBEDDING] [-p POST] [-t TOPIC] [-n NUMBER] [-f FILE] [-s STRING] query
 
 positional arguments:
   query                 The query
@@ -283,12 +283,15 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   -e EMBEDDING, --embedding EMBEDDING
-                        The embedding ID
-  -p POST, --post POST  The post ID
+                        Compare to the embedding with ID
+  -p POST, --post POST  Compare to the post with ID
   -t TOPIC, --topic TOPIC
-                        The topic ID
+                        Compare to a post in the topic with ID
   -n NUMBER, --number NUMBER
-                        The post number in a topic
+                        The post number in a topic (used with --topic)
+  -f FILE, --file FILE  Compare to the contents of a file
+  -s STRING, --string STRING
+                        Compare the query to a given string
 ```
 
 One of --embedding, --post, or --topic are required to find the post embedding that the query will be compared to.
@@ -299,6 +302,18 @@ Show the similarity score between the first post in topic 28476 and the query, "
 
 ```
  % ./embeddings.py similarity "Mount a PG9303" --topic 28476
+```
+
+Show the similarity score between the contents of the file testing.md and the query, "The cat ran away".
+
+```
+% ./embeddings.py similarity -f testing.md "The cat ran away"
+```
+
+Show the similarity score between the given string, "The dog ran across the street" and the query, "The dog ran across the road".
+
+```
+./embeddings.py similarity -s "The dog ran across the street" "The dog ran across the road"
 ```
 
 ### Get Embedding
