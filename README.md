@@ -352,7 +352,13 @@ The script requires Python3 to be installed. Then install these pip packages.
 % pip install openai
 ```
 
-Export your Chatbot embeddings to a CSV file using the [Data Explorer](https://www.discourse.org/plugins/data-explorer.html) plugin. Create the following query.
+Set your OPENAI_API_KEY environment variable to an API key you get from your OpenAI account.
+
+```
+% export OPENAI_API_KEY=XXXXXXXXXXXXXXXXXXXXXXX
+```
+
+This last step is only required if you want to run the search command or calculate the similarity of a query and a post on your forum. Export your Chatbot embeddings to a CSV file using the [Data Explorer](https://www.discourse.org/plugins/data-explorer.html) plugin. Create the following query.
 
 ```sql
 SELECT e.id, e.post_id AS post, p.topic_id AS topic, p.post_number,
@@ -363,16 +369,8 @@ FROM chatbot_post_embeddings e LEFT JOIN
 WHERE p.deleted_at IS NULL
 ```
 
-Run it and then download the results as CSV. Once downloaded, set your EMBEDDINGS_FILE environment variable as the path to that CSV file. This is how the script can search your embeddings.
+Run it and then download the results as CSV. Once downloaded, set your EMBEDDINGS_FILE environment variable as the path to that CSV file.
 
 ```
 % export EMBEDDINGS_FILE=~/Downloads/chatbot-embeddings-blah-blah-blah.csv
 ```
-
-Set your OPENAI_API_KEY environment variable to an API key you get from your OpenAI account.
-
-```
-% export OPENAI_API_KEY=XXXXXXXXXXXXXXXXXXXXXXX
-```
-
-Now you should be able to run the script.
