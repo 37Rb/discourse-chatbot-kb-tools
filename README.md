@@ -358,6 +358,12 @@ Set your OPENAI_API_KEY environment variable to an API key you get from your Ope
 % export OPENAI_API_KEY=XXXXXXXXXXXXXXXXXXXXXXX
 ```
 
+By default, embeddings are created using the text-embedding-ada-002 model. Optionally, you can choose a [different model](https://platform.openai.com/docs/guides/embeddings/embedding-models) by setting the EMBEDDINGS_MODEL environment variable.
+
+```
+% export EMBEDDINGS_MODEL=text-embedding-3-small
+```
+
 This last step is only required if you want to run the search command or calculate the similarity of a query and a post on your forum. Export your Chatbot embeddings to a CSV file using the [Data Explorer](https://www.discourse.org/plugins/data-explorer.html) plugin. Create the following query.
 
 ```sql

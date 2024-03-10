@@ -24,8 +24,9 @@ def by_header(row, header):
 def get_embedding(text):
     if not os.environ.get("OPENAI_API_KEY"):
         sys.exit("OPENAI_API_KEY environment variable isn't set")
+    model = os.environ.get("EMBEDDINGS_MODEL") or "text-embedding-ada-002"
     client = OpenAI()
-    return client.embeddings.create(input = [text], model="text-embedding-ada-002").data[0].embedding
+    return client.embeddings.create(input = [text], model=model).data[0].embedding
 
 
 def embedding_command(args):
