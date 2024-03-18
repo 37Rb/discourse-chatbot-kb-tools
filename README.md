@@ -350,6 +350,7 @@ The script requires Python3 to be installed. Then install these pip packages.
 ```
 % pip install scipy
 % pip install openai
+% pip install termcolor
 ```
 
 Set your OPENAI_API_KEY environment variable to an API key you get from your OpenAI account.

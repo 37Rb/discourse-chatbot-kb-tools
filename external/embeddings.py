@@ -7,6 +7,7 @@ import csv
 import json
 from openai import OpenAI
 from scipy.spatial.distance import cosine
+from termcolor import colored
 
 
 def by_header(row, header):
@@ -68,8 +69,8 @@ def similarity_command(args):
         print("Similarity to topic " + by_header(row, 'topic') + " post " + by_header(row, 'post_number') + " is " + format(1 - cosine(query_embedding, embedding), '.6f'))
 
 
-def search_command(args):
-    query_embedding = get_embedding(args.query)
+def search(query, limit):
+    query_embedding = get_embedding(query)
 
     results = []
     with open(get_embedding_file_name(), newline='') as csvfile:
@@ -86,10 +87,37 @@ def search_command(args):
             })
 
     results.sort(key=lambda x: x['similarity'], reverse=True)
+    return results[:limit]
+
+
+def search_command(args):
+    results = search(args.query, args.limit)
     count = 0
-    for result in results[:args.limit]:
+    for result in results:
         count += 1
         print(str(count) + ") topic " + str(result['topic']) + " post " + str(result['number']) + " similarity " + format(result['similarity'], '.6f') + ": " + result['title'])
+
+
+def run_test(topic, number, in_top, query):
+    results = search(query, in_top)
+    for result in results:
+        if result['topic'] == topic and result['number'] == number:
+            return True
+    return False
+
+
+def test_command(args):
+    with open(args.file, newline='') as tests_file:
+        reader = csv.DictReader(tests_file)
+        passed = 0
+        failed = 0
+        for test in reader:
+            if run_test(test['Topic'], test['Number'], int(test['In Top']), test['Query']):
+                passed += 1
+            else:
+                failed += 1
+                print(colored("Failed!", 'red') + " topic " + test['Topic'] + " post " + test['Number'] + " not in top " + test['In Top'] + ' for "' + test['Query'] + '"')
+        print("Ran " + str(passed + failed) + " tests: " + colored(str(passed) + " passed", 'green') + ", " + colored(str(failed) + " failed", 'red'))
 
 
 parser = argparse.ArgumentParser(description='Discourse Chatbot embedding tools.')
@@ -113,6 +141,10 @@ search_parser = subparsers.add_parser('search', help='Show search results for a 
 search_parser.add_argument('-l', '--limit', type=int, default=10, help='Show this many search results')
 search_parser.add_argument('query', help='The query')
 search_parser.set_defaults(func=search_command)
+
+test_parser = subparsers.add_parser('test', help='Test search results against expectations')
+test_parser.add_argument('file', help='The file containing search result expectations')
+test_parser.set_defaults(func=test_command)
 
 args = parser.parse_args()
 args.func(args)
