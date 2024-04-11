@@ -182,8 +182,8 @@
             if (!kbTopic.title.includes(sourceId) && !force) {
                 return Promise.reject("KB topic " + kbTopicId + " title does not include " + sourceId + ". If you're sure then use force option to update.");
             }
-            if (kbTopic.posts_count !== 1) {
-                return Promise.reject("KB topic " + kbTopicId + " has " + kbTopic.posts_count + " posts. Expected 1.");
+            if (kbTopic.posts_count < 1) {
+                return Promise.reject("KB topic " + kbTopicId + " has no posts. Expected at least 1.");
             }
 
             let updatedSomething = false;
