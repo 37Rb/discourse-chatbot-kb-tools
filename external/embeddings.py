@@ -80,8 +80,8 @@ def search(query, limit):
             post_embedding = json.loads(by_header(row, 'embedding'))
             similarity = 1 - cosine(query_embedding, post_embedding)
             results.append({
-                'topic': by_header(row, 'topic'),
-                'number': by_header(row, 'post_number'),
+                'topic': by_header(row, 'topic').strip(),
+                'number': by_header(row, 'post_number').strip(),
                 'similarity': similarity,
                 'title': by_header(row, 'topic_title')
             })
@@ -98,12 +98,16 @@ def search_command(args):
         print(str(count) + ") topic " + str(result['topic']) + " post " + str(result['number']) + " similarity " + format(result['similarity'], '.6f') + ": " + result['title'])
 
 
-def run_test(topic, number, in_top, query):
+def run_test(topic, post_number, in_top, query):
     results = search(query, in_top)
     for result in results:
-        if result['topic'] == topic and result['number'] == number:
-            return True
-    return False
+        if post_number:
+            if result['topic'] == topic and result['number'] == post_number:
+                return None
+        else:
+            if result['topic'] == topic:
+                return None
+    return results
 
 
 def test_command(args):
@@ -112,11 +116,17 @@ def test_command(args):
         passed = 0
         failed = 0
         for test in reader:
-            if run_test(test['Topic'], test['Number'], int(test['In Top']), test['Query']):
-                passed += 1
-            else:
+            topx = run_test(test['Topic'].strip(), test['Post Number'].strip(), int(test['In Top']), test['Query'])
+            if topx:
                 failed += 1
-                print(colored("Failed!", 'red') + " topic " + test['Topic'] + " post " + test['Number'] + " not in top " + test['In Top'] + ' for "' + test['Query'] + '"')
+                post_part = " post " + test['Post Number'] if test['Post Number'].strip() else ""
+                print(colored("Failed!", 'red') + " topic " + test['Topic'] + post_part + " not in top " + test['In Top'] + ' for "' + test['Query'] + '"')
+                if args.verbose:
+                    for i, result in enumerate(topx):
+                        print("    " + str(i+1) + ") topic " + str(result['topic']) + " post " + str(result['number']) + " similarity " + format(result['similarity'], '.6f') + ": " + result['title'])
+            else:
+                passed += 1
+
         print("Ran " + str(passed + failed) + " tests: " + colored(str(passed) + " passed", 'green') + ", " + colored(str(failed) + " failed", 'red'))
 
 
@@ -143,6 +153,7 @@ search_parser.add_argument('query', help='The query')
 search_parser.set_defaults(func=search_command)
 
 test_parser = subparsers.add_parser('test', help='Test search results against expectations')
+test_parser.add_argument('-v', '--verbose', action='store_true', help='Show additional information about failures')
 test_parser.add_argument('file', help='The file containing search result expectations')
 test_parser.set_defaults(func=test_command)
 
