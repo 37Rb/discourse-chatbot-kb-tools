@@ -92,10 +92,8 @@ def search(query, limit):
 
 def search_command(args):
     results = search(args.query, args.limit)
-    count = 0
-    for result in results:
-        count += 1
-        print(str(count) + ") topic " + str(result['topic']) + " post " + str(result['number']) + " similarity " + format(result['similarity'], '.6f') + ": " + result['title'])
+    for i, result in enumerate(results):
+        print(str(i+1) + ") topic " + str(result['topic']) + " post " + str(result['number']) + " similarity " + format(result['similarity'], '.6f') + ": " + result['title'])
 
 
 def run_test(topic, post_number, in_top, query):
