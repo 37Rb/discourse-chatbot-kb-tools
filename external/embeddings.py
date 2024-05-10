@@ -3,6 +3,7 @@
 import sys
 import os
 import argparse
+import requests
 import csv
 import json
 from openai import OpenAI
@@ -128,6 +129,30 @@ def test_command(args):
         print("Ran " + str(passed + failed) + " tests: " + colored(str(passed) + " passed", 'green') + ", " + colored(str(failed) + " failed", 'red'))
 
 
+def export_command(args):
+    if not os.environ.get("DISCOURSE_API_KEY"):
+        sys.exit("DISCOURSE_API_KEY environment variable isn't set")
+    user = os.environ.get("DISCOURSE_API_USER") or "system"
+    url = "https://" + args.domain + "/admin/plugins/explorer/queries/" + str(args.query) + "/run"
+    headers = {
+        "Content-Type": "multipart/form-data;",
+        "Api-Key": os.environ.get("DISCOURSE_API_KEY"),
+        "Api-Username": os.environ.get("DISCOURSE_API_USER"),
+    }
+    data = {
+        "limit": "ALL",
+        "download": "true"
+    }
+    result = requests.post(url, headers=headers, data=data).json()
+    if not result['success'] or result['errors']:
+        print("Success: " + str(result['success']) + ", errors: " + json.dumps(result['errors']))
+        return
+    with open(args.output, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(result['columns'])
+        writer.writerows(result['rows'])
+
+
 parser = argparse.ArgumentParser(description='Discourse Chatbot embedding tools.')
 subparsers = parser.add_subparsers(help='Available commands', required=True)
 
@@ -154,6 +179,12 @@ test_parser = subparsers.add_parser('test', help='Test search results against ex
 test_parser.add_argument('-v', '--verbose', action='store_true', help='Show additional information about failures')
 test_parser.add_argument('file', help='The file containing search result expectations')
 test_parser.set_defaults(func=test_command)
+
+export_parser = subparsers.add_parser('export', help='Run a Data Explorer query and export as CSV')
+export_parser.add_argument('-d', '--domain', required=True, help='Domain name of the Discourse site')
+export_parser.add_argument('-q', '--query', required=True, help='Query ID')
+export_parser.add_argument('-o', '--output', required=True, help='Output file name')
+export_parser.set_defaults(func=export_command)
 
 args = parser.parse_args()
 args.func(args)

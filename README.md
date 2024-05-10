@@ -337,6 +337,30 @@ options:
 % ./embeddings.py embedding "Mount a PG9303"
 ```
 
+### Export Embeddings From Discourse
+
+Run the Data Explorer query to export embeddings from Discourse as a CSV file. Useful if you want to automate semantic search testing.
+
+```
+% ./embeddings.py export -h
+usage: embeddings.py export [-h] -d DOMAIN -q QUERY -o OUTPUT
+
+options:
+  -h, --help            show this help message and exit
+  -d DOMAIN, --domain DOMAIN
+                        Domain name of the Discourse site
+  -q QUERY, --query QUERY
+                        Query ID
+  -o OUTPUT, --output OUTPUT
+                        Output file name
+```
+
+#### Example
+
+```
+% ./embeddings.py export -d support.suretyhome.com -q 6 -o embeddings-export.csv
+```
+
 ## Installation
 
 Clone the Git repository.
@@ -380,4 +404,18 @@ Run it and then download the results as CSV. Once downloaded, set your EMBEDDING
 
 ```
 % export EMBEDDINGS_FILE=~/Downloads/chatbot-embeddings-blah-blah-blah.csv
+```
+
+If you want to export as CSV using using this tool instead of the Discourse UI, set these environment variables.
+
+Set your DISCOURSE_API_KEY environment variable to an API key you get from Discourse.
+
+```
+% export DISCOURSE_API_KEY=XXXXXXXXXXXXXXXXXXXXXXX
+```
+
+If your DISCOURSE_API_KEY is associated with a user other than `system`, then set your DISCOURSE_API_USER environment variable to that user. Defaults to `system`.
+
+```
+% export DISCOURSE_API_USER=XXXXXXX
 ```
