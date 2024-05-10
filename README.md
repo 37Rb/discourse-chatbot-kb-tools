@@ -372,6 +372,7 @@ Clone the Git repository.
 The script requires Python3 to be installed. Then install these pip packages.
 
 ```
+% pip install requests
 % pip install scipy
 % pip install openai
 % pip install termcolor

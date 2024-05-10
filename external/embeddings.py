@@ -127,6 +127,8 @@ def test_command(args):
                 passed += 1
 
         print("Ran " + str(passed + failed) + " tests: " + colored(str(passed) + " passed", 'green') + ", " + colored(str(failed) + " failed", 'red'))
+        if failed:
+            sys.exit("Failed " + str(failed) + " tests")
 
 
 def export_command(args):
