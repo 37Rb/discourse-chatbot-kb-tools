@@ -55,6 +55,28 @@ def channels_command(args):
     print(args.user + " was in channels " + ", ".join(channels))
 
 
+def dump_command(args):
+    forum_origin = os.environ.get("FORUM_ORIGIN") or "https://support.suretyhome.com"
+    csv_file_name = os.environ.get("CHATS_FILE") or sys.exit("CHATS_FILE environment variable isn't set")
+    with open(csv_file_name, newline='') as infile:
+        reader = csv.DictReader(infile)
+        outdirname = os.path.basename(csv_file_name)[:-4]
+        os.mkdir(outdirname)
+        openmode = 'w'
+        channel_to_user = {}
+        for row in reader:
+            if not row['chat_channel_id'] in channel_to_user:
+                if int(row['user_id']) > 0:
+                    channel_to_user[row['chat_channel_id']] = row['username']
+                else:
+                    continue
+            message = row['cooked'].replace('src="/uploads/', 'src="' + forum_origin + '/uploads/')
+            outfilename = os.path.join(outdirname, channel_to_user[row['chat_channel_id']] + '.html')
+            with open(outfilename, openmode) as outfile:
+                outfile.write('<hr>' + row['username'] + " (" + row['created_at'] + "): " + message + '<br>')
+            openmode = 'a'
+
+
 parser = argparse.ArgumentParser(description='Discourse Chatbot chat history reader.')
 subparsers = parser.add_subparsers(help='Available commands', required=True)
 
@@ -71,6 +93,9 @@ channels_parser.add_argument('-u', '--user', help='The user to show channels for
 channels_parser.add_argument('-f', '--from-date', help='Only include messages from this date')
 channels_parser.add_argument('-t', '--to-date', help='Only include messages up to this date')
 channels_parser.set_defaults(func=channels_command)
+
+dump_parser = subparsers.add_parser('dump', help='Dump all channels for all users')
+dump_parser.set_defaults(func=dump_command)
 
 args = parser.parse_args()
 args.func(args)

@@ -1,4 +1,5 @@
 *~
 /external/chat-history.html
+/external/chat-message-*
 /external/embeddings-tests.csv
 /external/embeddings-export.csv
