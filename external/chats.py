@@ -63,18 +63,26 @@ def dump_command(args):
         outdirname = os.path.basename(csv_file_name)[:-4]
         os.mkdir(outdirname)
         openmode = 'w'
-        channel_to_user = {}
+        channels = {}
         for row in reader:
-            if not row['chat_channel_id'] in channel_to_user:
-                if int(row['user_id']) > 0:
-                    channel_to_user[row['chat_channel_id']] = row['username']
-                else:
-                    continue
+            if not row['chat_channel_id'] in channels:
+                channels[row['chat_channel_id']] = {
+                    'username': None,
+                    'last_message_time': None
+                }
+            if int(row['user_id']) > 0:
+                channels[row['chat_channel_id']]['username'] = row['username']
+            channels[row['chat_channel_id']]['last_message_time'] = datetime.strptime(row['created_at'], '%Y-%m-%d %H:%M:%S %Z')
             message = row['cooked'].replace('src="/uploads/', 'src="' + forum_origin + '/uploads/')
-            outfilename = os.path.join(outdirname, channel_to_user[row['chat_channel_id']] + '.html')
+            outfilename = os.path.join(outdirname, row['chat_channel_id'] + '.html')
             with open(outfilename, openmode) as outfile:
                 outfile.write('<hr>' + row['username'] + " (" + row['created_at'] + "): " + message + '<br>')
             openmode = 'a'
+        for channel_id, channel in channels.items():
+            if channel['username'] and channel['last_message_time']:
+                oldfilename = os.path.join(outdirname, channel_id + '.html')
+                newfilename = os.path.join(outdirname, channel['last_message_time'].strftime('%Y%m%d-%H%M%S') + '-' + channel['username'] + '.html')
+                os.rename(oldfilename, newfilename)
 
 
 parser = argparse.ArgumentParser(description='Discourse Chatbot chat history reader.')
