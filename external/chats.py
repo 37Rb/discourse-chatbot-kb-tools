@@ -58,7 +58,7 @@ def channels_command(args):
 def dump_command(args):
     forum_origin = os.environ.get("FORUM_ORIGIN") or "https://support.suretyhome.com"
     csv_file_name = os.environ.get("CHATS_FILE") or sys.exit("CHATS_FILE environment variable isn't set")
-    with open(csv_file_name, newline='') as infile:
+    with open(csv_file_name, newline='', encoding='utf-8') as infile:
         reader = csv.DictReader(infile)
         outdirname = os.path.basename(csv_file_name)[:-4]
         os.mkdir(outdirname)
