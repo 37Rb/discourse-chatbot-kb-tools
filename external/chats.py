@@ -12,7 +12,7 @@ def for_each_csv_row(args, callback):
     csv_file_name = os.environ.get("CHATS_FILE") or sys.exit("CHATS_FILE environment variable isn't set")
     from_date = datetime.strptime(args.from_date, '%Y-%m-%d').date() if args.from_date else None
     to_date = datetime.strptime(args.to_date, '%Y-%m-%d').date() if args.to_date else None
-    with open(csv_file_name, newline='') as infile:
+    with open(csv_file_name, newline='', encoding='utf-8') as infile:
         reader = csv.DictReader(infile)
         channels = args.channels.split(',') if hasattr(args, 'channels') and args.channels else []
         for row in reader:
@@ -31,7 +31,7 @@ def show_command(args):
         sys.exit("One of --user, --channels are required")
     forum_origin = os.environ.get("FORUM_ORIGIN") or "https://support.suretyhome.com"
     count = 0
-    with open(args.output, 'w') as outfile:
+    with open(args.output, 'w', encoding='utf-8') as outfile:
         def write_message_if_in_channel(channels, row):
             nonlocal count
             if row['chat_channel_id'] in channels:
@@ -75,7 +75,7 @@ def dump_command(args):
             channels[row['chat_channel_id']]['last_message_time'] = datetime.strptime(row['created_at'], '%Y-%m-%d %H:%M:%S %Z')
             message = row['cooked'].replace('src="/uploads/', 'src="' + forum_origin + '/uploads/')
             outfilename = os.path.join(outdirname, row['chat_channel_id'] + '.html')
-            with open(outfilename, openmode) as outfile:
+            with open(outfilename, openmode, encoding='utf-8') as outfile:
                 outfile.write('<hr>' + row['username'] + " (" + row['created_at'] + "): " + message + '<br>')
             openmode = 'a'
         for channel_id, channel in channels.items():
