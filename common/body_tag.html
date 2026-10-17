@@ -217,7 +217,8 @@
         #buildKbPostContentFromTopic(topic, options) {
             let header = "**Topic title is:** " + topic.title + "\n";
             if (topic.tags.length > 0) {
-                header += "**Topic tags are:** " + topic.tags.join(", ") + "\n";
+                let tagNames = topic.tags.map(tag => typeof tag === 'string' ? tag : tag.name);
+                header += "**Topic tags are:** " + tagNames.join(", ") + "\n";
             }
 
             let posts = topic.post_stream.posts;
