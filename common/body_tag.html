@@ -2,6 +2,9 @@
     class ChatbotKnowledgeBase {
         #chatbotCategoryName;
         #chatbotCategoryId;
+        #categories;
+
+        includeDatesCategories = ['Product Updates'];
 
         constructor(chatbotCategoryName = 'Chatbot') {
             this.#chatbotCategoryName = chatbotCategoryName;
@@ -19,7 +22,8 @@
             try {
                 let sourceTopic = await this.#getTopic(topicId);
                 let kbTopicTitle = "KB topic " + topicId + ": " + sourceTopic.title;
-                let kbPostContent = this.#buildKbPostContentFromTopic(sourceTopic, options);
+                let includeDates = await this.#isIncludeDatesCategory(sourceTopic.category_id);
+                let kbPostContent = this.#buildKbPostContentFromTopic(sourceTopic, options, includeDates);
 
                 if ('update' in options) {
                     let kbTopicId = await this.#updateKbTopic(kbTopicTitle, kbPostContent, options['update'], topicId, options['force']);
@@ -123,10 +127,24 @@
             return Promise.resolve("Imported " + count + " topics from category " + categoryName);
         }
 
+        async #getCategories() {
+            if (!this.#categories) {
+                let result = await this.#fetchApi("/categories.json");
+                this.#categories = result.category_list.categories;
+            }
+            return this.#categories;
+        }
+
         async #findCategoryId(categoryName) {
-            let result = await this.#fetchApi("/categories.json");
-            let category = result.category_list.categories.find(c => c.name === categoryName);
+            let categories = await this.#getCategories();
+            let category = categories.find(c => c.name === categoryName);
             return category ? Promise.resolve(category.id) : Promise.reject(categoryName + " not found");
+        }
+
+        async #isIncludeDatesCategory(categoryId) {
+            let categories = await this.#getCategories();
+            let category = categories.find(c => c.id === categoryId);
+            return category ? this.includeDatesCategories.includes(category.name) : false;
         }
 
         #findChatbotCategoryId(categoryName) {
@@ -214,8 +232,11 @@
             return updatedSomething ? Promise.resolve(kbTopicId) : Promise.resolve(false);
         }
 
-        #buildKbPostContentFromTopic(topic, options) {
+        #buildKbPostContentFromTopic(topic, options, includeDates) {
             let header = "**Topic title is:** " + topic.title + "\n";
+            if (includeDates) {
+                header += "**Topic was posted on:** " + this.#formatDate(topic.created_at) + "\n";
+            }
             if (topic.tags.length > 0) {
                 let tagNames = topic.tags.map(tag => typeof tag === 'string' ? tag : tag.name);
                 header += "**Topic tags are:** " + tagNames.join(", ") + "\n";
@@ -228,7 +249,11 @@
                 posts = posts.filter(post => !options['exclude'].includes(post.post_number));
             }
             posts = posts.map((post) => {
-                return "**Link to post " + post.post_number + " below is:** " + this.#buildLinkToPost(post) + "\n" + post.raw;
+                let postHeader = "**Link to post " + post.post_number + " below is:** " + this.#buildLinkToPost(post) + "\n";
+                if (includeDates) {
+                    postHeader += "**Post " + post.post_number + " was posted on:** " + this.#formatDate(post.created_at) + "\n";
+                }
+                return postHeader + post.raw;
             }, this);
 
             return header + "\n" + posts.join("\n\n");
@@ -303,6 +328,10 @@
             } else {
                 return Promise.reject("HTTP " + response.status + ", " + response.statusText);
             }
+        }
+
+        #formatDate(timestamp) {
+            return timestamp.slice(0, 10);
         }
 
         #isObject(x) {

@@ -72,6 +72,14 @@ Exclude posts 3, 5, and 6 from the KB topic.
 x.importTopic(26989, { exclude: [3,5,6] })
 ```
 
+#### Dates
+
+Topics from categories in the includeDatesCategories property include the date the topic and each post were posted. This is useful for categories like Product Updates where the bot needs to know when something happened. It defaults to Product Updates. You can modify it but changes only last until the page is reloaded.
+
+```javascript
+x.includeDatesCategories = ['Product Updates', 'Announcements']
+```
+
 ### Import a Category
 
 Use importCategory() to import (or update) every topic in a category.
